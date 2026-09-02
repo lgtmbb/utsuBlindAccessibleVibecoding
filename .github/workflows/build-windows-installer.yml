@@ -43,7 +43,8 @@ jobs:
             }
           }
 
-          $ok = Run-Step "javafx:jlink" { mvn -B -DskipTests javafx:jlink }
+          $ok = Run-Step "compile" { mvn -B -DskipTests compile }
+          if ($ok) { $ok = Run-Step "javafx:jlink" { mvn -B -DskipTests javafx:jlink } }
           if ($ok) { $ok = Run-Step "package" { mvn -B -DskipTests package } }
           if ($ok) { $ok = Run-Step "copy-dependencies" { mvn -B -DskipTests dependency:copy-dependencies "-DoutputDirectory=target/deps" "-DincludeScope=runtime" "-DexcludeGroupIds=org.openjfx" } }
           if ($ok) {
