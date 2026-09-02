@@ -19,48 +19,71 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Build custom Java runtime with JavaFX linked in (jlink)
-        run: mvn -B -DskipTests javafx:jlink
-
-      - name: Build application jar
-        run: mvn -B -DskipTests package
-
-      - name: Collect non-JavaFX runtime dependencies
-        run: mvn -B -DskipTests dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime -DexcludeGroupIds=org.openjfx
-
-      - name: Assemble jpackage input folder
+      - name: Run build (log everything to ci-logs/latest.txt)
+        id: build
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path jpackage-input | Out-Null
-          Copy-Item target/utsu-0.4.5.jar jpackage-input/
-          if (Test-Path target/deps) {
-            Copy-Item target/deps/*.jar jpackage-input/
+          New-Item -ItemType Directory -Force -Path ci-logs | Out-Null
+          $log = "ci-logs/latest.txt"
+          "Run ${{ github.run_number }} - $(Get-Date -Format o)" | Out-File -FilePath $log
+
+          function Run-Step($title, $scriptBlock) {
+            "`n=== $title ===" | Out-File -FilePath $log -Append
+            try {
+              & $scriptBlock 2>&1 | Out-File -FilePath $log -Append
+              if ($LASTEXITCODE -ne 0) {
+                "STEP FAILED: $title (exit code $LASTEXITCODE)" | Out-File -FilePath $log -Append
+                return $false
+              }
+              "STEP OK: $title" | Out-File -FilePath $log -Append
+              return $true
+            } catch {
+              "STEP THREW: $title -- $_" | Out-File -FilePath $log -Append
+              return $false
+            }
           }
 
-      - name: Build MSI installer with jpackage
+          $ok = Run-Step "javafx:jlink" { mvn -B -DskipTests javafx:jlink }
+          if ($ok) { $ok = Run-Step "package" { mvn -B -DskipTests package } }
+          if ($ok) { $ok = Run-Step "copy-dependencies" { mvn -B -DskipTests dependency:copy-dependencies "-DoutputDirectory=target/deps" "-DincludeScope=runtime" "-DexcludeGroupIds=org.openjfx" } }
+          if ($ok) {
+            $ok = Run-Step "assemble jpackage input" {
+              New-Item -ItemType Directory -Force -Path jpackage-input | Out-Null
+              Copy-Item target/utsu-0.4.5.jar jpackage-input/
+              if (Test-Path target/deps) { Copy-Item target/deps/*.jar jpackage-input/ }
+            }
+          }
+          if ($ok) {
+            $ok = Run-Step "jpackage" {
+              New-Item -ItemType Directory -Force -Path installer-output | Out-Null
+              jpackage --type msi --runtime-image target/utsu --input jpackage-input --main-jar utsu-0.4.5.jar --main-class com.utsusynth.utsu.UtsuApp --name Utsu2 --app-version 0.4.5 --vendor "Utsu2 (community NVDA-accessibility fork)" --win-menu --win-shortcut --dest installer-output
+            }
+          }
+
+          if ($ok) { "`nBUILD SUCCEEDED" | Out-File -FilePath $log -Append }
+          else { "`nBUILD FAILED - see failing step above" | Out-File -FilePath $log -Append }
+
+          echo "build_ok=$ok" >> $env:GITHUB_OUTPUT
+
+      - name: Commit log back to repo
+        if: always()
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path installer-output | Out-Null
-          jpackage `
-            --type msi `
-            --runtime-image target/utsu `
-            --input jpackage-input `
-            --main-jar utsu-0.4.5.jar `
-            --main-class com.utsusynth.utsu.UtsuApp `
-            --name Utsu2 `
-            --app-version 0.4.5 `
-            --vendor "Utsu2 (community NVDA-accessibility fork)" `
-            --win-menu `
-            --win-shortcut `
-            --dest installer-output
+          git config user.name "utsu2-ci-bot"
+          git config user.email "ci@example.com"
+          git add ci-logs/latest.txt
+          git commit -m "[skip ci] CI log for run ${{ github.run_number }}" --allow-empty
+          git push
 
       - name: Upload installer as build artifact
+        if: steps.build.outputs.build_ok == 'True'
         uses: actions/upload-artifact@v4
         with:
           name: utsu2-installer
           path: installer-output/*.msi
 
       - name: Publish installer as a GitHub Release (direct public download link)
+        if: steps.build.outputs.build_ok == 'True'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
