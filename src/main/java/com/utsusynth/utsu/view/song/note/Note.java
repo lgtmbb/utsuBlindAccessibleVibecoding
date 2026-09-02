@@ -2,10 +2,11 @@ package com.utsusynth.utsu.view.song.note;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableSet;
-import com.utsusynth.utsu.common.RegionBounds;
+import com.utsusynth.utsu.common.utils.RegionBounds;
 import com.utsusynth.utsu.common.data.EnvelopeData;
 import com.utsusynth.utsu.common.data.NoteConfigData;
 import com.utsusynth.utsu.common.data.NoteData;
@@ -27,14 +28,12 @@ import javafx.geometry.Pos;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.AccessibleRole;
 import javafx.scene.Cursor;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
@@ -128,32 +127,28 @@ public class Note implements TrackItem, Comparable<Note> {
         Note thisNote = this;
         lyric.initialize(new LyricCallback() {
             @Override
-            public void setSongLyric(String newLyric) {
+            public void saveChanges() {
                 thisNote.track.updateNote(thisNote);
                 updateAccessibleText();
             }
 
             @Override
             public void replaceSongLyric(String oldLyric, String newLyric) {
-                thisNote.track.updateNote(thisNote);
-                thisNote.track.recordAction(() -> {
-                    lyric.setVisibleLyric(newLyric);
-                    thisNote.track.updateNote(thisNote);
-                    updateAccessibleText();
-                }, () -> {
-                    lyric.setVisibleLyric(oldLyric);
-                    thisNote.track.updateNote(thisNote);
-                    updateAccessibleText();
-                });
+                thisNote.updateLyric(oldLyric, newLyric);
                 updateAccessibleText();
+            }
+
+            @Override
+            public AnchorPane getLyricPane() {
+                return thisNote.track.getLyricPane();
             }
         }, this.startX, this.widthX, this.currentY, showLyrics, showAliases);
     }
 
     /**
      * Rebuilds the screen-reader-facing description of this note (pitch, lyric, timing) and
-     * notifies any assistive technology (e.g. NVDA) that it changed, for every currently
-     * rendered instance of this note. Accessibility-only; does not affect the visual note.
+     * notifies assistive technology (e.g. NVDA) that it changed, for every currently rendered
+     * instance of this note. Accessibility-only; does not affect the visual note.
      */
     private void updateAccessibleText() {
         String pitchName = PitchUtils.rowNumToPitch(getRow());
@@ -259,7 +254,7 @@ public class Note implements TrackItem, Comparable<Note> {
         // Accessibility: expose this note as a real, screen-reader-focusable control instead of
         // a mouse-only shape with no semantic meaning. NVDA (and other UI Automation clients)
         // only announce a node once it is focusTraversable, has an AccessibleRole, and reports
-        // AccessibleAttribute.TEXT — none of which the original mouse-driven note had.
+        // AccessibleAttribute.TEXT.
         if (!isDisplayOnly) {
             newLayout.setFocusTraversable(true);
             newLayout.setAccessibleRole(AccessibleRole.NODE);
@@ -296,16 +291,6 @@ public class Note implements TrackItem, Comparable<Note> {
                 }
             });
         }
-
-        newLayout.setOnContextMenuRequested(event -> {
-            if (!isValid()) {
-                return;
-            }
-            if (contextMenu != null) {
-                contextMenu.hide(); // Hide any existing context menu.
-            }
-            createContextMenu().show(newLayout, event.getScreenX(), event.getScreenY());
-        });
 
         newLayout.setOnMouseReleased(event -> {
             if (event.getButton() != MouseButton.PRIMARY) {
@@ -475,18 +460,54 @@ public class Note implements TrackItem, Comparable<Note> {
             }
         });
         newLayout.setOnMousePressed(event -> {
-            if (newLayout.getScene().getCursor() == Cursor.W_RESIZE) {
-                subMode = SubMode.RESIZING;
-                startDuration = getDurationMs();
-            } else {
-                subMode = SubMode.CLICKING; // Note that this may become dragging in the future.
-                positionInNote =
-                        RoundUtils.round(scaler.unscaleX(event.getX() + offsetX - getStartX()));
-                startPos = getAbsPositionMs();
-                startRow = getRow();
-                hasMoved = false;
+            if (contextMenu != null) {
+                contextMenu.hide(); // Hide any existing context menu.
+            }
+            // Open the context menu if needed.
+            if (event.getButton() == MouseButton.SECONDARY) {
+                if (event.isShiftDown()) {
+                    // Open the pitch chooser menu.
+                    createPitchChooserMenu().show(
+                            newLayout, event.getScreenX(), event.getScreenY());
+                } else if (isValid()) {
+                    // Open the context menu.
+                    createContextMenu().show(newLayout, event.getScreenX(), event.getScreenY());
+                }
+            // Start a move or resize action.
+            } else if (event.getButton() == MouseButton.PRIMARY) {
+                if (newLayout.getScene().getCursor() == Cursor.W_RESIZE) {
+                    subMode = SubMode.RESIZING;
+                    startDuration = getDurationMs();
+                } else {
+                    subMode = SubMode.CLICKING; // Note that this may become dragging in the future.
+                    positionInNote =
+                            RoundUtils.round(scaler.unscaleX(event.getX() + offsetX - getStartX()));
+                    startPos = getAbsPositionMs();
+                    startRow = getRow();
+                    hasMoved = false;
+                }
             }
         });
+    }
+
+    private ContextMenu createPitchChooserMenu() {
+        contextMenu = new ContextMenu();
+        List<String> prefixes = track.getVoicebankPrefixes();
+        for (String prefix : prefixes) {
+            MenuItem menuItem = new MenuItem(prefix);
+            menuItem.setOnAction(event -> setPrefix(prefix, prefixes));
+            contextMenu.getItems().add(menuItem);
+        }
+        List<String> suffixes = track.getVoicebankSuffixes();
+        if (!prefixes.isEmpty() && !suffixes.isEmpty()) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+        for (String suffix : suffixes) {
+            MenuItem menuItem = new MenuItem(suffix);
+            menuItem.setOnAction(event -> setSuffix(suffix, suffixes));
+            contextMenu.getItems().add(menuItem);
+        }
+        return contextMenu;
     }
 
     private ContextMenu createContextMenu() {
@@ -616,6 +637,10 @@ public class Note implements TrackItem, Comparable<Note> {
         for (Pane note : drawnNotes.values()) {
             note.getStyleClass().set(2, highlighted ? "highlighted" : "not-highlighted");
         }
+
+        if (!isHighlighted) {
+            lyric.closeTextFieldIfNeeded();
+        }
     }
 
     public boolean isValid() {
@@ -643,6 +668,10 @@ public class Note implements TrackItem, Comparable<Note> {
     /** Will need to redraw the note for this change to take effect. */
     public void setCroppingEnabled(boolean croppingEnabled) {
         this.croppingEnabled = croppingEnabled;
+    }
+
+    public boolean isLyricInputOpen() {
+        return lyric.isTextFieldOpen();
     }
 
     public void openLyricInput() {
@@ -706,6 +735,7 @@ public class Note implements TrackItem, Comparable<Note> {
 
     private void deleteNote() {
         contextMenu.hide();
+        lyric.closeTextFieldIfNeeded();
         track.deleteNote(this);
     }
 
@@ -802,6 +832,54 @@ public class Note implements TrackItem, Comparable<Note> {
             double adjustedWidthX = Math.max(0, endOfSection - startOfSection);
             drawnOverlaps.get(offsetX).setMaxWidth(adjustedWidthX);
         }
+    }
+
+    /** Set the prefix of a note, usually the pitch prefix. */
+    private void setPrefix(String prefix, List<String> allPrefixes) {
+        String oldLyric = lyric.getLyric();
+        // Remove any existing prefix or pitch prefix.
+        String existing = "";
+        for (String possiblePrefix : allPrefixes) {
+            if (oldLyric.startsWith(possiblePrefix)) {
+                existing = possiblePrefix;
+                break;
+            }
+        }
+        String pitch = PitchUtils.extractStartPitch(oldLyric);
+        String strippedLyric = oldLyric.substring(Math.max(existing.length(), pitch.length()));
+        // Add the new prefix.
+        updateLyric(oldLyric, prefix + strippedLyric);
+    }
+
+    /** Set the prefix of a note, usually the pitch suffix. */
+    private void setSuffix(String suffix, List<String> allSuffixes) {
+        String oldLyric = lyric.getLyric();
+        // Remove any existing suffix or pitch suffix.
+        String existing = "";
+        for (String possibleSuffix : allSuffixes) {
+            if (oldLyric.endsWith(possibleSuffix)) {
+                existing = possibleSuffix;
+                break;
+            }
+        }
+        String pitch = PitchUtils.extractEndPitch(oldLyric);
+        String strippedLyric = oldLyric.substring(
+                0, oldLyric.length() - Math.max(existing.length(), pitch.length()));
+        // Add the new suffix.
+        updateLyric(oldLyric, strippedLyric + suffix);
+    }
+
+    // Update the lyric programmatically, including visible lyric if needed.
+    private void updateLyric(String oldLyric, String newLyric) {
+        lyric.setVisibleLyric(newLyric);
+        track.updateNote(this);
+        track.recordAction(() -> {
+            lyric.setVisibleLyric(newLyric);
+            track.updateNote(this);
+        }, () -> {
+            lyric.setVisibleLyric(oldLyric);
+            track.updateNote(this);
+        });
     }
 
     private int getQuantizedStart() {

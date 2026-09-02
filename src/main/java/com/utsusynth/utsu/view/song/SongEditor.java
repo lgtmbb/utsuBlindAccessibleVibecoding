@@ -3,7 +3,7 @@ package com.utsusynth.utsu.view.song;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
-import com.utsusynth.utsu.common.RegionBounds;
+import com.utsusynth.utsu.common.utils.RegionBounds;
 import com.utsusynth.utsu.common.data.*;
 import com.utsusynth.utsu.common.exception.NoteAlreadyExistsException;
 import com.utsusynth.utsu.common.i18n.Localizer;
@@ -12,6 +12,9 @@ import com.utsusynth.utsu.common.quantize.Scaler;
 import com.utsusynth.utsu.common.utils.PitchUtils;
 import com.utsusynth.utsu.common.utils.RoundUtils;
 import com.utsusynth.utsu.controller.UtsuController.CheckboxType;
+import com.utsusynth.utsu.files.AudioPlayer;
+import com.utsusynth.utsu.files.PreferencesManager;
+import com.utsusynth.utsu.files.PreferencesManager.PlayPianoNotesMode;
 import com.utsusynth.utsu.view.song.note.AddNoteBox;
 import com.utsusynth.utsu.view.song.note.Note;
 import com.utsusynth.utsu.view.song.note.NoteCallback;
@@ -26,14 +29,10 @@ import com.utsusynth.utsu.view.song.track.TrackCallback;
 import com.utsusynth.utsu.view.song.track.TrackItem;
 import com.utsusynth.utsu.view.song.track.TrackItemSet;
 import javafx.beans.property.*;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.util.*;
@@ -42,6 +41,8 @@ import java.util.stream.Collectors;
 public class SongEditor {
     private final Track track;
     private final PlaybackManager playbackManager;
+    private final AudioPlayer audioPlayer;
+    private final PreferencesManager preferencesManager;
     private final SelectionBox selectionBox;
     private final AddNoteBox addNoteBox;
     private final ContextMenu editorContextMenu;
@@ -65,6 +66,8 @@ public class SongEditor {
     public SongEditor(
             Track track,
             PlaybackManager playbackManager,
+            AudioPlayer audioPlayer,
+            PreferencesManager preferencesManager,
             SelectionBox selectionBox,
             AddNoteBox addNoteBox,
             SongClipboard clipboard,
@@ -75,6 +78,8 @@ public class SongEditor {
             Scaler scaler) {
         this.track = track;
         this.playbackManager = playbackManager;
+        this.audioPlayer = audioPlayer;
+        this.preferencesManager = preferencesManager;
         this.selectionBox = selectionBox;
         this.addNoteBox = addNoteBox;
         this.clipboard = clipboard;
@@ -174,12 +179,6 @@ public class SongEditor {
         return track.getNoteTrack();
     }
 
-    /** Add new notes to the view from the controller. */
-    public void addNotesFromController(int firstPosition, int lastPosition, List<NoteData> notes) {
-        addNotes(notes);
-        refreshNotes(firstPosition, lastPosition);
-    }
-
     private void addNotes(List<NoteData> notes) {
         NoteData prevNote = notes.get(0);
         for (NoteData note : notes) {
@@ -214,17 +213,6 @@ public class SongEditor {
             noteMap.addNoteElement(newNote);
             prevNote = note;
         }
-    }
-
-    /** Called by controller, deletes notes from the view. */
-    public void deleteNotesFromController(List<NoteData> notes) {
-        List<Note> displayedNotes = new ArrayList<>();
-        for (NoteData note : notes) {
-            if (noteMap.hasNote(note.getPosition())) {
-                displayedNotes.add(noteMap.getNote(note.getPosition()));
-            }
-        }
-        deleteNotes(displayedNotes);
     }
 
     public ListView<TrackItemSet> getDynamicsElement() {
@@ -504,6 +492,16 @@ public class SongEditor {
     }
 
     private void moveNotes(List<Note> notes, int positionDelta, int rowDelta) {
+        // Play a piano note in some situations.
+        if (notes.size() == 1 && rowDelta != 0
+                && preferencesManager.getPlayPianoNotes() != PlayPianoNotesMode.DISABLED) {
+            String pitch = PitchUtils.rowNumToPitch(notes.get(0).getRow() + rowDelta);
+            double volume =
+                    preferencesManager.getPlayPianoNotes() == PlayPianoNotesMode.ENABLED_HALF
+                            ? 0.5 : 1;
+            audioPlayer.playPianoNote(pitch, volume, /* alwaysPlay= */ true);
+        }
+
         Set<Integer> positionsToRemove = notes.stream().filter(Note::isValid)
                 .map(Note::getAbsPositionMs).collect(Collectors.toSet());
         RegionBounds toStandardize = removeNotes(positionsToRemove);
@@ -546,6 +544,12 @@ public class SongEditor {
         if (!noteMap.hasNote(position)) {
             return;
         }
+        // If old focus has lyric open, new focus should have it open too.
+        boolean shouldOpenLyricInput = false;
+        List<Note> highlightedNotes = playbackManager.getHighlightedNotes();
+        if (!highlightedNotes.isEmpty()) {
+            shouldOpenLyricInput = highlightedNotes.get(0).isLyricInputOpen();
+        }
         Note newFocus = noteMap.getNote(position);
         playbackManager.clearHighlights();
         playbackManager.highlightNote(newFocus);
@@ -554,6 +558,9 @@ public class SongEditor {
         // highlight, so NVDA actually announces it. Without this, a screen reader user tabbing
         // through notes hears nothing change even though sighted users see the highlight move.
         newFocus.requestNoteFocus();
+        if (shouldOpenLyricInput) {
+            newFocus.openLyricInput();
+        }
     }
 
     public void openLyricInput(int position) {
@@ -724,6 +731,24 @@ public class SongEditor {
                         // Create new note if size would be nonzero.
                         if (endMs > startMs) {
                             int startRow = (int) scaler.unscaleY(curY) / Quantizer.ROW_HEIGHT;
+                            // Optionally play a piano key when creating the new note.
+                            switch (preferencesManager.getPlayPianoNotes()) {
+                                case ENABLED_HALF:
+                                    audioPlayer.playPianoNote(
+                                            PitchUtils.rowNumToPitch(startRow),
+                                            /* volume= */0.5,
+                                            /* alwaysPlay= */ true);
+                                    break;
+                                case ENABLED_FULL:
+                                    audioPlayer.playPianoNote(
+                                            PitchUtils.rowNumToPitch(startRow),
+                                            /* volume= */1.0,
+                                            /* alwaysPlay= */ true);
+                                    break;
+                                case DISABLED:
+                                default:
+                                    // Do nothing.
+                            }
                             Note newNote = noteFactory.createDefaultNote(
                                     startRow,
                                     startMs,
@@ -935,6 +960,21 @@ public class SongEditor {
                 // Clear current note's cache if current note is not highlighted.
                 model.clearCache(note.getAbsPositionMs(), note.getAbsPositionMs());
             }
+        }
+
+        @Override
+        public AnchorPane getLyricPane() {
+            return model.getLyricPane();
+        }
+
+        @Override
+        public List<String> getVoicebankPrefixes() {
+            return model.getVoicebankPrefixes();
+        }
+
+        @Override
+        public List<String> getVoicebankSuffixes() {
+            return model.getVoicebankSuffixes();
         }
     };
 
