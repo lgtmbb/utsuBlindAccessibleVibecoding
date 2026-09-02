@@ -1,0 +1,71 @@
+name: Build Windows installer
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build custom Java runtime with JavaFX linked in (jlink)
+        run: mvn -B -DskipTests javafx:jlink
+
+      - name: Build application jar
+        run: mvn -B -DskipTests package
+
+      - name: Collect non-JavaFX runtime dependencies
+        run: mvn -B -DskipTests dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime -DexcludeGroupIds=org.openjfx
+
+      - name: Assemble jpackage input folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path jpackage-input | Out-Null
+          Copy-Item target/utsu-0.4.5.jar jpackage-input/
+          if (Test-Path target/deps) {
+            Copy-Item target/deps/*.jar jpackage-input/
+          }
+
+      - name: Build MSI installer with jpackage
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path installer-output | Out-Null
+          jpackage `
+            --type msi `
+            --runtime-image target/utsu `
+            --input jpackage-input `
+            --main-jar utsu-0.4.5.jar `
+            --main-class com.utsusynth.utsu.UtsuApp `
+            --name Utsu2 `
+            --app-version 0.4.5 `
+            --vendor "Utsu2 (community NVDA-accessibility fork)" `
+            --win-menu `
+            --win-shortcut `
+            --dest installer-output
+
+      - name: Upload installer as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: utsu2-installer
+          path: installer-output/*.msi
+
+      - name: Publish installer as a GitHub Release (direct public download link)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "Utsu2 build ${{ github.run_number }}"
+          files: installer-output/*.msi
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
