@@ -85,6 +85,11 @@
                 <MenuItem fx:id="propertiesItem" mnemonicParsing="false" onAction="#openProperties" text="Properties" />
               </items>
             </Menu>
+            <Menu fx:id="voicebankMenu" mnemonicParsing="false" text="Voicebank">
+              <items>
+                <MenuItem fx:id="extractVoicebankZipItem" mnemonicParsing="false" onAction="#extractVoicebankZip" text="Extract a Voicebank .zip File..." />
+              </items>
+            </Menu>
             <Menu fx:id="toolsMenu" mnemonicParsing="false" text="Tools">
               <items>
                   <Menu fx:id="bulkEditorMenu" mnemonicParsing="false" text="Bulk Editor">

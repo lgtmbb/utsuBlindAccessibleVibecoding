@@ -15,16 +15,20 @@ import com.utsusynth.utsu.controller.song.LyricEditorController.LyricEditorType;
 import com.utsusynth.utsu.controller.song.SongController;
 import com.utsusynth.utsu.files.ThemeManager;
 import com.utsusynth.utsu.files.song.SongReader;
+import com.utsusynth.utsu.files.voicebank.VoicebankZipExtractor;
 import de.jangassen.MenuToolkit;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.ListChangeListener;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -188,6 +192,10 @@ public class UtsuController implements Localizable {
     private MenuItem openSongItem; // Value injected by FXMLLoader
     @FXML
     private MenuItem openVoicebankItem; // Value injected by FXMLLoader
+    @FXML
+    private Menu voicebankMenu; // Value injected by FXMLLoader
+    @FXML
+    private MenuItem extractVoicebankZipItem; // Value injected by FXMLLoader
     @FXML
     private Menu openRecentMenu; // Value injected by FXMLLoader
     @FXML
@@ -667,6 +675,65 @@ public class UtsuController implements Localizable {
             switchToExistingFile(e.getAlreadyOpenFile());
             closeTab(newTab);
         }
+    }
+
+    @FXML
+    void extractVoicebankZip(ActionEvent event) {
+        FileChooser zipChooser = new FileChooser();
+        zipChooser.setTitle("Select a voicebank .zip file to extract");
+        zipChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Zip files", "*.zip"));
+        File zipFile = zipChooser.showOpenDialog(tabs.getScene().getWindow());
+        if (zipFile == null) {
+            return;
+        }
+
+        DirectoryChooser destChooser = new DirectoryChooser();
+        destChooser.setTitle("Choose a destination folder for the extracted voicebank");
+        File destDir = destChooser.showDialog(tabs.getScene().getWindow());
+        if (destDir == null) {
+            return;
+        }
+
+        VoicebankZipExtractor extractor = new VoicebankZipExtractor();
+        Task<VoicebankZipExtractor.ExtractionResult> task = new Task<>() {
+            @Override
+            protected VoicebankZipExtractor.ExtractionResult call() throws IOException {
+                return extractor.extract(zipFile, destDir);
+            }
+        };
+        task.setOnSucceeded(workerStateEvent -> {
+            VoicebankZipExtractor.ExtractionResult result = task.getValue();
+            StringBuilder message = new StringBuilder();
+            message.append("Extracted ").append(result.fileCount).append(" files to\n")
+                    .append(result.destination.getAbsolutePath()).append("\n\n")
+                    .append("File name character set used: ").append(result.charsetUsed)
+                    .append("\n\n")
+                    .append("A text log of this extraction was saved as extraction-log.txt ")
+                    .append("in the destination folder.");
+            if (!result.warnings.isEmpty()) {
+                message.append("\n\nWarnings:\n");
+                for (String warning : result.warnings) {
+                    message.append("- ").append(warning).append("\n");
+                }
+            }
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, message.toString());
+            alert.setTitle("Voicebank extraction complete");
+            alert.setHeaderText("Voicebank extraction complete");
+            alert.showAndWait();
+        });
+        task.setOnFailed(workerStateEvent -> {
+            Throwable exception = task.getException();
+            Alert alert = new Alert(
+                    Alert.AlertType.ERROR,
+                    "Could not extract the voicebank .zip file.\n"
+                            + (exception == null ? "" : exception.getMessage()));
+            alert.setTitle("Voicebank extraction failed");
+            alert.showAndWait();
+        });
+        Thread extractionThread = new Thread(task, "voicebank-zip-extraction");
+        extractionThread.setDaemon(true);
+        extractionThread.start();
     }
 
     /** Called when a new file is added to the Open Recent menu. */
