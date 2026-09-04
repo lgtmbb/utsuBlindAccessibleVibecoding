@@ -16,12 +16,17 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 /**
  * UTAU-ish Thingy with Some Updates (UTSU)
@@ -134,36 +139,167 @@ public class UtsuApp extends Application {
      * (e.g. Japanese) file names for non-Unicode-aware programs. When it is not, Java (and
      * therefore this program) receives already-mangled versions of such file names -- this is
      * the same setting responsible for garbled Japanese voicebank folder/file names in general,
-     * not something specific to this program. If misconfigured, shows a one-time explanation of
-     * how to fix it via Windows' own system locale setting; does not attempt to change any
-     * system setting itself.
+     * not something specific to this program. If misconfigured, offers to fix it directly via
+     * the same registry values Windows' own "Beta: Use Unicode UTF-8" checkbox controls.
+     *
+     * <p>Two things about this fix cannot be made invisible, because they are enforced by
+     * Windows itself and not by this program: changing this value is a machine-wide setting, so
+     * Windows will show its own "Do you want to allow this app to make changes" permission
+     * prompt (this is the standard, documented way for a program to request that kind of
+     * change -- not something being bypassed); and the new value only takes effect after a
+     * restart.
      */
     private void checkWindowsUnicodeFilenameSupport() {
         String osName = System.getProperty("os.name", "");
         if (!osName.toLowerCase(java.util.Locale.ROOT).contains("windows")) {
             return;
         }
-        String jnuEncoding = System.getProperty("sun.jnu.encoding", "");
-        if (jnuEncoding.toUpperCase(java.util.Locale.ROOT).contains("UTF-8")
-                || jnuEncoding.toUpperCase(java.util.Locale.ROOT).contains("UTF8")) {
-            return; // Already configured correctly; nothing to warn about.
+        if (isWindowsUtf8CodePageEnabled()) {
+            return; // Already configured correctly; nothing to do.
         }
-        String message = "Windows is currently set to translate file names using the \""
-                + jnuEncoding + "\" character set instead of Unicode (UTF-8). This means "
-                + "voicebank folder and file names containing Japanese (or other non-Latin) "
-                + "characters may appear as unreadable garbled text, both in this program and "
-                + "in File Explorer.\n\n"
-                + "To fix this system-wide (no file renaming needed):\n"
+
+        ButtonType fixNowButton = new ButtonType("Fix now");
+        ButtonType notNowButton = new ButtonType("Not now", ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert confirm = new Alert(
+                AlertType.CONFIRMATION,
+                "Windows is currently set to translate file names using a non-Unicode character "
+                        + "set. This means voicebank folder and file names containing Japanese "
+                        + "(or other non-Latin) characters may appear as unreadable garbled "
+                        + "text, both in this program and in File Explorer.\n\n"
+                        + "This program can fix that by changing the relevant Windows system "
+                        + "setting (the same one controlled by \"Beta: Use Unicode UTF-8 for "
+                        + "worldwide language support\" in Windows Settings). Two things will "
+                        + "happen that this program cannot skip, because Windows itself enforces "
+                        + "them: a Windows permission prompt will appear, asking to allow this "
+                        + "change (choose Yes); and a restart is needed afterward for the change "
+                        + "to take effect.\n\n"
+                        + "This message only appears once, on first launch.",
+                fixNowButton, notNowButton);
+        confirm.setTitle("Windows Unicode file name support");
+        confirm.setHeaderText("File names with Japanese or other non-Latin characters may not "
+                + "display correctly");
+        confirm.getButtonTypes().setAll(fixNowButton, notNowButton);
+        confirm.showAndWait().ifPresent(choice -> {
+            if (choice == fixNowButton) {
+                applyWindowsUtf8CodePageFix();
+            }
+        });
+    }
+
+    /**
+     * Reads the two registry values that "Beta: Use Unicode UTF-8 for worldwide language
+     * support" controls (HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage, values ACP and
+     * OEMCP). Reading the registry does not require administrator rights. Returns true only if
+     * both are already set to 65001 (UTF-8).
+     */
+    private boolean isWindowsUtf8CodePageEnabled() {
+        try {
+            String acp = readRegistryValue("ACP");
+            String oemcp = readRegistryValue("OEMCP");
+            return "65001".equals(acp) && "65001".equals(oemcp);
+        } catch (IOException | InterruptedException e) {
+            // If this can't be determined, don't offer a fix for a problem that could not be
+            // confirmed to exist.
+            return true;
+        }
+    }
+
+    private String readRegistryValue(String valueName) throws IOException, InterruptedException {
+        Process process = new ProcessBuilder(
+                "reg", "query",
+                "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",
+                "/v", valueName)
+                .redirectErrorStream(true)
+                .start();
+        String output;
+        try (InputStream in = process.getInputStream()) {
+            output = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        process.waitFor();
+        for (String line : output.split("\\R")) {
+            if (line.trim().startsWith(valueName)) {
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length > 0) {
+                    return parts[parts.length - 1];
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Writes ACP and OEMCP to 65001 (UTF-8) via a single elevated helper process, so Windows
+     * only shows one permission prompt for both values. This is done by writing a small,
+     * temporary PowerShell script and asking Windows to run it elevated (Start-Process -Verb
+     * RunAs), which is the standard, documented mechanism for a program to request elevation for
+     * one specific action -- the program itself is not, and does not become, elevated.
+     */
+    private void applyWindowsUtf8CodePageFix() {
+        try {
+            File script = File.createTempFile("utsu2-utf8-codepage-fix", ".ps1");
+            script.deleteOnExit();
+            String scriptContents =
+                    "reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage\" "
+                            + "/v ACP /t REG_SZ /d 65001 /f\r\n"
+                            + "reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage\" "
+                            + "/v OEMCP /t REG_SZ /d 65001 /f\r\n"
+                            + "exit $LASTEXITCODE\r\n";
+            Files.writeString(script.toPath(), scriptContents,
+                    java.nio.charset.StandardCharsets.UTF_8);
+
+            String launcherCommand = String.format(
+                    "$p = Start-Process -FilePath powershell.exe -ArgumentList "
+                            + "'-NoProfile','-ExecutionPolicy','Bypass','-File','%s' "
+                            + "-Verb RunAs -Wait -PassThru; exit $p.ExitCode",
+                    script.getAbsolutePath().replace("'", "''"));
+            Process elevated = new ProcessBuilder(
+                    "powershell.exe", "-NoProfile", "-Command", launcherCommand)
+                    .inheritIO()
+                    .start();
+            int exitCode = elevated.waitFor();
+
+            if (exitCode == 0 && isWindowsUtf8CodePageEnabled()) {
+                ButtonType restartButton = new ButtonType("Restart now");
+                ButtonType laterButton =
+                        new ButtonType("Restart later", ButtonBar.ButtonData.CANCEL_CLOSE);
+                Alert done = new Alert(
+                        AlertType.INFORMATION,
+                        "The Windows setting was updated successfully. A restart is required "
+                                + "before file names display correctly.",
+                        restartButton, laterButton);
+                done.setTitle("Setting updated");
+                done.setHeaderText("Restart required");
+                done.getButtonTypes().setAll(restartButton, laterButton);
+                done.showAndWait().ifPresent(choice -> {
+                    if (choice == restartButton) {
+                        try {
+                            new ProcessBuilder("shutdown", "/r", "/t", "5").start();
+                        } catch (IOException e) {
+                            // Not fatal; the user can still restart manually.
+                        }
+                    }
+                });
+            } else {
+                showFixFailedAlert(null);
+            }
+        } catch (IOException | InterruptedException e) {
+            showFixFailedAlert(e);
+        }
+    }
+
+    private void showFixFailedAlert(Exception e) {
+        String message = "Could not change the Windows setting automatically (the permission "
+                + "prompt may have been declined, or something else went wrong"
+                + (e == null ? "" : ": " + e.getMessage()) + ").\n\n"
+                + "You can still do it manually:\n"
                 + "1. Open Settings, then \"Time & language\", then \"Language & region\".\n"
                 + "2. Under \"Related settings\", choose \"Administrative language settings\".\n"
                 + "3. Click \"Change system locale...\".\n"
                 + "4. Check \"Beta: Use Unicode UTF-8 for worldwide language support\".\n"
-                + "5. Restart Windows.\n\n"
-                + "This message only appears once, on first launch.";
+                + "5. Restart Windows.";
         Alert alert = new Alert(AlertType.WARNING, message);
         alert.setTitle("Windows Unicode file name support");
-        alert.setHeaderText("File names with Japanese or other non-Latin characters may not "
-                + "display correctly");
+        alert.setHeaderText("Automatic fix did not complete");
         alert.showAndWait();
     }
 
@@ -171,3 +307,4 @@ public class UtsuApp extends Application {
         launch(args);
     }
 }
+

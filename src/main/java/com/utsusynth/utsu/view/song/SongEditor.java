@@ -339,6 +339,54 @@ public class SongEditor {
         });
     }
 
+    /**
+     * Keyboard equivalent of drawing a new note with the mouse. Since there is no persistent
+     * on-screen "empty cell" cursor yet (see known issues), this creates the new note
+     * immediately after the currently focused note, at the same pitch, one quantize step long --
+     * or, if nothing is focused (e.g. an empty song), at the very start of the song at a default
+     * middle pitch. The new note is then focused, so Up/Down/Shift+Left/Shift+Right/Enter can be
+     * used right away to adjust its pitch, length, and lyric.
+     */
+    public void createNoteAfterFocus() {
+        int startMs;
+        int startRow;
+        Optional<Integer> focusPosition = getFocusNote();
+        if (focusPosition.isPresent() && noteMap.hasNote(focusPosition.get())) {
+            Note focusedNote = noteMap.getNote(focusPosition.get());
+            startMs = focusedNote.getAbsPositionMs() + focusedNote.getDurationMs();
+            startRow = focusedNote.getRow();
+        } else {
+            startMs = 0;
+            startRow = 3 * PitchUtils.PITCHES.size(); // A reasonable default middle pitch.
+        }
+        if (noteMap.hasNote(startMs)) {
+            return; // Something is already there; do nothing rather than risk an overlap.
+        }
+
+        Note newNote = noteFactory.createDefaultNote(
+                startRow,
+                startMs,
+                quantizer.getQuant(),
+                noteCallback,
+                vibratoEditor,
+                model.getCheckboxValue(CheckboxType.SHOW_LYRICS),
+                model.getCheckboxValue(CheckboxType.SHOW_ALIASES));
+        noteMap.addNoteElement(newNote);
+        List<Note> noteList = ImmutableList.of(newNote);
+        model.recordAction(() -> {
+            playbackManager.clearHighlights();
+            undoDeleteNotes(noteList);
+        }, () -> {
+            playbackManager.clearHighlights();
+            deleteNotes(noteList);
+        });
+
+        if (!getVisibleTrack().contains(startMs)) {
+            scrollToPosition(startMs);
+        }
+        focusOnNote(startMs);
+    }
+
     public void deleteSelected() {
         List<Note> toDelete = playbackManager.getHighlightedNotes();
         deleteNotes(toDelete);
