@@ -69,6 +69,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static javafx.scene.input.KeyCombination.ALT_DOWN;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 
 /**
@@ -525,7 +526,7 @@ public class SongController implements EditorController, Localizable {
         } else if (new KeyCodeCombination(KeyCode.N).match(keyEvent)) {
             songEditor.createNoteAfterFocus();
             return true;
-        } else if (new KeyCodeCombination(KeyCode.N, SHORTCUT_DOWN).match(keyEvent)) {
+        } else if (new KeyCodeCombination(KeyCode.N, ALT_DOWN).match(keyEvent)) {
             openCreateNoteAtPositionDialog();
             return true;
         } else if (new KeyCodeCombination(KeyCode.BACK_SPACE).match(keyEvent)) {
