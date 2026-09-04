@@ -197,6 +197,12 @@ public class UtsuController implements Localizable {
     @FXML
     private MenuItem extractVoicebankZipItem; // Value injected by FXMLLoader
     @FXML
+    private Menu noteMenu; // Value injected by FXMLLoader
+    @FXML
+    private MenuItem insertNoteAfterFocusItem; // Value injected by FXMLLoader
+    @FXML
+    private MenuItem createNoteAtPositionItem; // Value injected by FXMLLoader
+    @FXML
     private Menu openRecentMenu; // Value injected by FXMLLoader
     @FXML
     private MenuItem clearRecentsItem; // Value injected by FXMLLoader
@@ -931,6 +937,22 @@ public class UtsuController implements Localizable {
     void openNoteProperties(ActionEvent event) {
         if (!tabs.getTabs().isEmpty()) {
             editors.get(tabs.getSelectionModel().getSelectedItem().getId()).openNoteProperties();
+        }
+    }
+
+    @FXML
+    void insertNoteAfterFocus(ActionEvent event) {
+        if (!tabs.getTabs().isEmpty()) {
+            editors.get(tabs.getSelectionModel().getSelectedItem().getId())
+                    .insertNoteAfterFocus();
+        }
+    }
+
+    @FXML
+    void createNoteAtPosition(ActionEvent event) {
+        if (!tabs.getTabs().isEmpty()) {
+            editors.get(tabs.getSelectionModel().getSelectedItem().getId())
+                    .createNoteAtPosition();
         }
     }
 

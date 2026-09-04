@@ -107,6 +107,17 @@ public interface EditorController {
     void openNoteProperties();
 
     /**
+     * Song only. Keyboard equivalent of drawing a new note with the mouse: inserts a new note
+     * right after the currently focused one.
+     */
+    void insertNoteAfterFocus();
+
+    /**
+     * Song only. Opens the "Create Note at Position" dialog (Pitch/Time combo boxes).
+     */
+    void createNoteAtPosition();
+
+    /**
      * Voicebank only. Highlights config for a lyric.
      */
     void showLyricConfig(String trueLyric);

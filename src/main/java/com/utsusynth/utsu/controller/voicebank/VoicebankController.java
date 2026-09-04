@@ -486,6 +486,16 @@ public class VoicebankController implements EditorController, Localizable {
     }
 
     @Override
+    public void insertNoteAfterFocus() {
+        // Note creation does not apply to voicebanks.
+    }
+
+    @Override
+    public void createNoteAtPosition() {
+        // Note creation does not apply to voicebanks.
+    }
+
+    @Override
     public void showLyricConfig(String trueLyric) {
         Optional<LyricConfigData> maybeLyricData = voicebank.get().getLyricData(trueLyric);
         maybeLyricData.ifPresent(lyricData ->

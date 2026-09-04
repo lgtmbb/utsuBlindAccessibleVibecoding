@@ -1198,6 +1198,16 @@ public class SongController implements EditorController, Localizable {
     }
 
     @Override
+    public void insertNoteAfterFocus() {
+        songEditor.createNoteAfterFocus();
+    }
+
+    @Override
+    public void createNoteAtPosition() {
+        openCreateNoteAtPositionDialog();
+    }
+
+    @Override
     public void showLyricConfig(String trueLyric) {
         // Lyric configs can only be shown on voicebank editor.
     }
