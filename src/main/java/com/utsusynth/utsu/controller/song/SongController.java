@@ -586,10 +586,16 @@ public class SongController implements EditorController, Localizable {
     }
 
     /**
-     * Opens a small dialog to create a note at an exact, typed-in position and pitch, rather
-     * than requiring arrow-key navigation through every empty grid cell to reach it -- which is
-     * impractical without being able to visually scan ahead for the right spot. Reachable via
-     * Ctrl+N.
+     * Opens a dialog to create a note at an exact position and pitch, chosen from combo boxes
+     * rather than typed as free text (free-text pitch/time entry is error-prone and easy to get
+     * wrong without being able to glance at what was typed). Reachable via Alt+N.
+     *
+     * <p>Organized as two tabs: "Pitch" (a note-name combo box and an octave combo box) and
+     * "Time" (minutes / seconds / sub-second combo boxes, the last stepped by the song's actual
+     * quantize grid so the choices stay musically meaningful and short). All four/three combo
+     * boxes are standard JavaFX ComboBox controls, which map to native Windows combo box
+     * accessibility roles automatically -- unlike Note.java's custom-drawn notes, no manual
+     * AccessibleRole/AccessibleText work is needed for these.
      */
     private void openCreateNoteAtPositionDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -599,22 +605,75 @@ public class SongController implements EditorController, Localizable {
             dialog.initOwner(anchorCenter.getScene().getWindow());
         }
 
-        Label positionLabel = new Label("Position (milliseconds):");
-        TextField positionField = new TextField("0");
-        positionLabel.setLabelFor(positionField);
+        // --- Pitch tab ---
+        Label noteLabel = new Label("Note:");
+        ComboBox<String> noteCombo = new ComboBox<>();
+        noteCombo.getItems().addAll(PitchUtils.PITCHES);
+        noteCombo.setValue("C");
+        noteLabel.setLabelFor(noteCombo);
 
-        Label pitchLabel = new Label("Pitch (e.g. C4, A#3):");
-        TextField pitchField = new TextField("C4");
-        pitchLabel.setLabelFor(pitchField);
+        Label octaveLabel = new Label("Octave:");
+        ComboBox<Integer> octaveCombo = new ComboBox<>();
+        for (int octave = 1; octave <= PitchUtils.NUM_OCTAVES; octave++) {
+            octaveCombo.getItems().add(octave);
+        }
+        octaveCombo.setValue(4);
+        octaveLabel.setLabelFor(octaveCombo);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(8);
-        grid.setVgap(8);
-        grid.add(positionLabel, 0, 0);
-        grid.add(positionField, 1, 0);
-        grid.add(pitchLabel, 0, 1);
-        grid.add(pitchField, 1, 1);
-        dialog.getDialogPane().setContent(grid);
+        GridPane pitchGrid = new GridPane();
+        pitchGrid.setHgap(8);
+        pitchGrid.setVgap(8);
+        pitchGrid.add(noteLabel, 0, 0);
+        pitchGrid.add(noteCombo, 1, 0);
+        pitchGrid.add(octaveLabel, 0, 1);
+        pitchGrid.add(octaveCombo, 1, 1);
+        Tab pitchTab = new Tab("Pitch", pitchGrid);
+        pitchTab.setClosable(false);
+
+        // --- Time tab ---
+        Label minutesLabel = new Label("Minutes:");
+        ComboBox<Integer> minutesCombo = new ComboBox<>();
+        for (int minute = 0; minute <= 30; minute++) {
+            minutesCombo.getItems().add(minute);
+        }
+        minutesCombo.setValue(0);
+        minutesLabel.setLabelFor(minutesCombo);
+
+        Label secondsLabel = new Label("Seconds:");
+        ComboBox<Integer> secondsCombo = new ComboBox<>();
+        for (int second = 0; second < 60; second++) {
+            secondsCombo.getItems().add(second);
+        }
+        secondsCombo.setValue(0);
+        secondsLabel.setLabelFor(secondsCombo);
+
+        int quant = songEditor.getQuant();
+        Label subSecondLabel = new Label("Milliseconds (in " + quant + " ms steps):");
+        ComboBox<Integer> subSecondCombo = new ComboBox<>();
+        for (int ms = 0; ms < 1000; ms += quant) {
+            subSecondCombo.getItems().add(ms);
+        }
+        if (subSecondCombo.getItems().isEmpty()) {
+            subSecondCombo.getItems().add(0);
+        }
+        subSecondCombo.setValue(0);
+        subSecondLabel.setLabelFor(subSecondCombo);
+
+        GridPane timeGrid = new GridPane();
+        timeGrid.setHgap(8);
+        timeGrid.setVgap(8);
+        timeGrid.add(minutesLabel, 0, 0);
+        timeGrid.add(minutesCombo, 1, 0);
+        timeGrid.add(secondsLabel, 0, 1);
+        timeGrid.add(secondsCombo, 1, 1);
+        timeGrid.add(subSecondLabel, 0, 2);
+        timeGrid.add(subSecondCombo, 1, 2);
+        Tab timeTab = new Tab("Time", timeGrid);
+        timeTab.setClosable(false);
+
+        TabPane tabPane = new TabPane(pitchTab, timeTab);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        dialog.getDialogPane().setContent(tabPane);
 
         ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
@@ -623,28 +682,11 @@ public class SongController implements EditorController, Localizable {
             if (choice != createButtonType) {
                 return;
             }
-            String positionText = positionField.getText().trim();
-            String pitchText = pitchField.getText().trim();
-            int positionMs;
-            try {
-                positionMs = Integer.parseInt(positionText);
-            } catch (NumberFormatException e) {
-                showCreateNoteErrorAlert(
-                        "\"" + positionText + "\" is not a whole number of milliseconds.");
-                return;
-            }
-            if (positionMs < 0) {
-                showCreateNoteErrorAlert("Position cannot be negative.");
-                return;
-            }
-            if (!PitchUtils.looksLikePitch(pitchText)) {
-                showCreateNoteErrorAlert(
-                        "\"" + pitchText + "\" is not a recognized pitch. Use a letter "
-                                + "A through G, optionally followed by #, followed by an "
-                                + "octave number 1 through 7, e.g. C4 or A#3.");
-                return;
-            }
-            int row = PitchUtils.pitchToRowNum(pitchText.toUpperCase());
+            int positionMs = minutesCombo.getValue() * 60000
+                    + secondsCombo.getValue() * 1000
+                    + subSecondCombo.getValue();
+            String pitchText = noteCombo.getValue() + octaveCombo.getValue();
+            int row = PitchUtils.pitchToRowNum(pitchText);
             if (!songEditor.createNoteAt(positionMs, row)) {
                 showCreateNoteErrorAlert(
                         "A note already exists at " + positionMs + " ms. Choose a different "

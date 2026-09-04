@@ -371,6 +371,12 @@ public class SongEditor {
      * impractical without being able to visually scan ahead for the right spot, whereas typing
      * an exact millisecond position and pitch name is unambiguous regardless.
      */
+    /** The current quantize step, in milliseconds. Used by the "Create Note at Position" dialog
+     * to offer sub-second position choices that match the song's actual grid resolution. */
+    public int getQuant() {
+        return quantizer.getQuant();
+    }
+
     public boolean createNoteAt(int startMs, int startRow) {
         if (noteMap.hasNote(startMs)) {
             return false; // Something is already there; do nothing rather than risk an overlap.
