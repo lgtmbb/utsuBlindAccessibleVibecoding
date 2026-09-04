@@ -14,6 +14,7 @@ import com.utsusynth.utsu.common.exception.FileAlreadyOpenException;
 import com.utsusynth.utsu.common.i18n.Localizable;
 import com.utsusynth.utsu.common.i18n.Localizer;
 import com.utsusynth.utsu.common.quantize.Quantizer;
+import com.utsusynth.utsu.common.utils.PitchUtils;
 import com.utsusynth.utsu.controller.EditorCallback;
 import com.utsusynth.utsu.controller.EditorController;
 import com.utsusynth.utsu.controller.UtsuController.CheckboxType;
@@ -54,6 +55,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -523,6 +525,9 @@ public class SongController implements EditorController, Localizable {
         } else if (new KeyCodeCombination(KeyCode.N).match(keyEvent)) {
             songEditor.createNoteAfterFocus();
             return true;
+        } else if (new KeyCodeCombination(KeyCode.N, SHORTCUT_DOWN).match(keyEvent)) {
+            openCreateNoteAtPositionDialog();
+            return true;
         } else if (new KeyCodeCombination(KeyCode.BACK_SPACE).match(keyEvent)) {
             songEditor.deleteSelected();
             return true;
@@ -577,6 +582,80 @@ public class SongController implements EditorController, Localizable {
             // No need to override default key behavior.
             return false;
         }
+    }
+
+    /**
+     * Opens a small dialog to create a note at an exact, typed-in position and pitch, rather
+     * than requiring arrow-key navigation through every empty grid cell to reach it -- which is
+     * impractical without being able to visually scan ahead for the right spot. Reachable via
+     * Ctrl+N.
+     */
+    private void openCreateNoteAtPositionDialog() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Create Note at Position");
+        dialog.setHeaderText("Create Note at Position");
+        if (anchorCenter.getScene() != null) {
+            dialog.initOwner(anchorCenter.getScene().getWindow());
+        }
+
+        Label positionLabel = new Label("Position (milliseconds):");
+        TextField positionField = new TextField("0");
+        positionLabel.setLabelFor(positionField);
+
+        Label pitchLabel = new Label("Pitch (e.g. C4, A#3):");
+        TextField pitchField = new TextField("C4");
+        pitchLabel.setLabelFor(pitchField);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(8);
+        grid.setVgap(8);
+        grid.add(positionLabel, 0, 0);
+        grid.add(positionField, 1, 0);
+        grid.add(pitchLabel, 0, 1);
+        grid.add(pitchField, 1, 1);
+        dialog.getDialogPane().setContent(grid);
+
+        ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(choice -> {
+            if (choice != createButtonType) {
+                return;
+            }
+            String positionText = positionField.getText().trim();
+            String pitchText = pitchField.getText().trim();
+            int positionMs;
+            try {
+                positionMs = Integer.parseInt(positionText);
+            } catch (NumberFormatException e) {
+                showCreateNoteErrorAlert(
+                        "\"" + positionText + "\" is not a whole number of milliseconds.");
+                return;
+            }
+            if (positionMs < 0) {
+                showCreateNoteErrorAlert("Position cannot be negative.");
+                return;
+            }
+            if (!PitchUtils.looksLikePitch(pitchText)) {
+                showCreateNoteErrorAlert(
+                        "\"" + pitchText + "\" is not a recognized pitch. Use a letter "
+                                + "A through G, optionally followed by #, followed by an "
+                                + "octave number 1 through 7, e.g. C4 or A#3.");
+                return;
+            }
+            int row = PitchUtils.pitchToRowNum(pitchText.toUpperCase());
+            if (!songEditor.createNoteAt(positionMs, row)) {
+                showCreateNoteErrorAlert(
+                        "A note already exists at " + positionMs + " ms. Choose a different "
+                                + "position, or use the N key to insert after an existing note.");
+            }
+        });
+    }
+
+    private void showCreateNoteErrorAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+        alert.setTitle("Could not create note");
+        alert.showAndWait();
     }
 
     /**

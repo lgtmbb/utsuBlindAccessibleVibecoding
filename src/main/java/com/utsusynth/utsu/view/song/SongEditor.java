@@ -359,8 +359,21 @@ public class SongEditor {
             startMs = 0;
             startRow = 3 * PitchUtils.PITCHES.size(); // A reasonable default middle pitch.
         }
+        createNoteAt(startMs, startRow);
+    }
+
+    /**
+     * Creates a one-quantize-step-long note at an exact position and pitch and focuses it, or
+     * does nothing if a note already occupies that position. Used both by
+     * {@link #createNoteAfterFocus()} (position implied by the current focus) and by the
+     * "Create Note at Position..." dialog (position typed in directly) -- the latter exists
+     * because arrow-key-walking through every empty grid cell to reach an arbitrary position is
+     * impractical without being able to visually scan ahead for the right spot, whereas typing
+     * an exact millisecond position and pitch name is unambiguous regardless.
+     */
+    public boolean createNoteAt(int startMs, int startRow) {
         if (noteMap.hasNote(startMs)) {
-            return; // Something is already there; do nothing rather than risk an overlap.
+            return false; // Something is already there; do nothing rather than risk an overlap.
         }
 
         Note newNote = noteFactory.createDefaultNote(
@@ -385,6 +398,7 @@ public class SongEditor {
             scrollToPosition(startMs);
         }
         focusOnNote(startMs);
+        return true;
     }
 
     public void deleteSelected() {
