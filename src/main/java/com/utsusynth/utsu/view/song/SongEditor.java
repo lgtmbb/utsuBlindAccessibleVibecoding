@@ -382,6 +382,24 @@ public class SongEditor {
             return false; // Something is already there; do nothing rather than risk an overlap.
         }
 
+        // Match the mouse-drag note creation behavior exactly: optionally preview the pitch by
+        // playing a piano note, per the user's existing preference.
+        switch (preferencesManager.getPlayPianoNotes()) {
+            case ENABLED_HALF:
+                audioPlayer.playPianoNote(
+                        PitchUtils.rowNumToPitch(startRow), /* volume= */ 0.5,
+                        /* alwaysPlay= */ true);
+                break;
+            case ENABLED_FULL:
+                audioPlayer.playPianoNote(
+                        PitchUtils.rowNumToPitch(startRow), /* volume= */ 1.0,
+                        /* alwaysPlay= */ true);
+                break;
+            case DISABLED:
+            default:
+                // Do nothing.
+        }
+
         Note newNote = noteFactory.createDefaultNote(
                 startRow,
                 startMs,
