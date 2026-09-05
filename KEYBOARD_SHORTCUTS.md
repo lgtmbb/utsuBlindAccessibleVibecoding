@@ -67,7 +67,7 @@ already bound -- see "Added by this fork" below for the one collision that was c
 | Ctrl+Right Arrow | Move focused note later in time by one quantize step | Not bound to anything above |
 | Shift+Left Arrow | Shrink focused note's duration by one quantize step | Not bound to anything above |
 | Shift+Right Arrow | Extend focused note's duration by one quantize step | Not bound to anything above |
-| Ctrl+Alt+N | Insert a new note right after the focused note (also in the new Note menu) | **Requested as Ctrl+Shift+N, but that collides with the pre-existing "New Voicebank" accelerator above -- caught and moved to Ctrl+Alt+N.** No accelerator in this codebase uses the Ctrl+Alt combination; Windows' own global combinations using Ctrl+Alt are Ctrl+Alt+Del and Ctrl+Alt+arrow (screen rotation, on some graphics drivers), neither of which uses a letter key; NVDA's own commands are bound to its modifier key (Insert, or Caps Lock if reconfigured), not Ctrl+Alt+letter |
+| Ctrl+F2 | Insert a new note right after the focused note (also in the new Note menu) | **Requested as Ctrl+Shift+N (collided with "New Voicebank"), then tried as Ctrl+Alt+N -- both wrong.** Ctrl+Alt+&lt;letter&gt; is fundamentally unsafe on Windows for any international/non-US keyboard layout (Hungarian included): Windows treats AltGr (the right-hand Alt key present on those layouts) as a synthetic Ctrl+Alt press, so any Ctrl+Alt+letter shortcut silently fires instead of the special character the user meant to type -- documented directly by Microsoft/VS Code/PowerToys/JetBrains bug trackers, including a Hungarian-layout example ("Press AltGr+B... Actual: the Ctrl+Alt+B shortcut fires"). Worse, Ctrl+Alt+N specifically is NVDA's own default shortcut to start NVDA itself, so it was a double conflict. Function keys are never remapped by AltGr on any keyboard layout, so Ctrl+F2 was used instead: not used anywhere in this codebase, not an NVDA gesture (NVDA's own commands need its Insert/Caps-Lock modifier, not plain Ctrl+F-key), and not a Windows-reserved global shortcut (Ctrl+F2 is only meaningful inside specific apps like Word/Excel, not system-wide) |
 | Alt+N | Open "Create Note at Position" dialog (also in the new Note menu) | **Originally bound to Ctrl+N, which collided with the pre-existing "New Song" accelerator above -- caught and moved to Alt+N.** No accelerator in this codebase uses the Alt modifier; every `Menu`/`MenuItem` in `UtsuScene.fxml` has `mnemonicParsing="false"`, so Alt+letter cannot collide with a menu mnemonic in this app either; Windows' own global Alt-combinations (Alt+Tab, Alt+F4, Alt+Space, Alt+Esc) do not use letter keys; NVDA's own commands are bound to its modifier key (Insert, or Caps Lock if reconfigured), not plain Alt+letter, on native desktop apps |
 
 None of the above use the Insert key, which NVDA itself uses as its default command modifier --
@@ -93,5 +93,12 @@ keyboard layout.
 - "Ctrl" above means the JavaFX `SHORTCUT_DOWN` modifier, which is Ctrl on Windows/Linux and Cmd
   on macOS. This fork targets Windows, but the mapping is automatic if this is ever built for
   another platform.
+- **Never bind Ctrl+Alt+&lt;letter/digit&gt; in this app.** Windows treats AltGr (present on
+  Hungarian and most other non-US keyboard layouts) as a synthetic Ctrl+Alt press, so any
+  Ctrl+Alt+letter shortcut here would silently fire instead of the special character a user on
+  such a layout is trying to type. This is a Windows OS-level design decision, not something an
+  app can opt out of. Ctrl+Alt combined with a non-character key (function keys, arrows,
+  Home/End/PageUp/PageDown, Escape) is not affected, since AltGr only ever remaps
+  character-producing keys.
 - This list should be updated whenever a new shortcut is added anywhere in the codebase, and
   re-checked against this same table first.

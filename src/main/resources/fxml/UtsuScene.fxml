@@ -87,7 +87,7 @@
             </Menu>
             <Menu fx:id="noteMenu" mnemonicParsing="false" text="Note">
               <items>
-                <MenuItem fx:id="insertNoteAfterFocusItem" mnemonicParsing="false" onAction="#insertNoteAfterFocus" text="Insert Note After Focus (Ctrl+Alt+N)" />
+                <MenuItem fx:id="insertNoteAfterFocusItem" mnemonicParsing="false" onAction="#insertNoteAfterFocus" text="Insert Note After Focus (Ctrl+F2)" />
                 <MenuItem fx:id="createNoteAtPositionItem" mnemonicParsing="false" onAction="#createNoteAtPosition" text="Create Note at Position... (Alt+N)" />
               </items>
             </Menu>

@@ -523,7 +523,7 @@ public class SongController implements EditorController, Localizable {
             flickerIcon(stopIcon);
             stopPlayback(); // Stop button's event handler.
             return true;
-        } else if (new KeyCodeCombination(KeyCode.N, SHORTCUT_DOWN, ALT_DOWN).match(keyEvent)) {
+        } else if (new KeyCodeCombination(KeyCode.F2, SHORTCUT_DOWN).match(keyEvent)) {
             songEditor.createNoteAfterFocus();
             return true;
         } else if (new KeyCodeCombination(KeyCode.N, ALT_DOWN).match(keyEvent)) {
