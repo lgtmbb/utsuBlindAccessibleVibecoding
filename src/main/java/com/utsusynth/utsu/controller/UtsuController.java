@@ -957,6 +957,27 @@ public class UtsuController implements Localizable {
     }
 
     @FXML
+    void showAbout(ActionEvent event) {
+        String message = "Utsu2 -- an NVDA/keyboard-accessibility fork of Utsu.\n\n"
+                + "Utsu is a UTAU-compatible vocal synthesizer editor, originally created by "
+                + "titinko and contributors (github.com/titinko/utsu).\n\n"
+                + "This fork adds screen-reader-visible keyboard access to note editing "
+                + "(pitch, timing, duration, creation), a Windows Unicode-filename fix and "
+                + "check, and a voicebank .zip extractor that auto-detects UTF-8 vs Shift-JIS "
+                + "file name encoding.\n\n"
+                + "Each build is installed separately (see the install folder name, e.g. "
+                + "utsublind\\build-<number>), so multiple builds can be compared side by side. "
+                + "See KEYBOARD_SHORTCUTS.md in the project repository for a full list of "
+                + "keyboard shortcuts, and the GitHub Releases page for the full changelog of "
+                + "every build:\n"
+                + "https://github.com/lgtmbb/utsuBlindAccessibleVibecoding";
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
+        alert.setTitle("About Utsu2");
+        alert.setHeaderText("About Utsu2");
+        alert.showAndWait();
+    }
+
+    @FXML
     void zoomInH(ActionEvent event) {
         changeHorizontalScale(scaler.getHorizontalRank() + 1);
     }
@@ -1082,3 +1103,4 @@ public class UtsuController implements Localizable {
         statusBar.cancelProgress();
     }
 }
+
