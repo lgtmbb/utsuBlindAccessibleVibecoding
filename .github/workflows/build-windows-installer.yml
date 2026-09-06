@@ -57,7 +57,21 @@ jobs:
           if ($ok) {
             $ok = Run-Step "jpackage" {
               New-Item -ItemType Directory -Force -Path installer-output | Out-Null
-              jpackage --type msi --runtime-image target/utsu --input jpackage-input --main-jar utsu-0.4.5.jar --main-class com.utsusynth.utsu.UtsuApp --name Utsu2 --app-version 0.4.5 --vendor "Utsu2 (community NVDA-accessibility fork)" --win-menu --win-shortcut --dest installer-output
+              # Each build installs to its own "utsublind\build-<N>" folder under Program
+              # Files, with a build-numbered app name, so:
+              #  1. Multiple builds can be installed side by side to compare behavior, instead
+              #     of each new build silently overwriting the previous one's files (which is
+              #     what a fixed --name/default install directory would do).
+              #  2. If a new build turns out to have a regression, the previous, still-working
+              #     build remains installed and untouched -- no need to uninstall or roll back
+              #     anything while a fix is made.
+              #  3. Nothing here is installed under "Utsu" (the original, non-accessible
+              #     program's own folder name), so this fork can never collide with, or be
+              #     confused with, a separate install of the original for side-by-side
+              #     comparison.
+              $installDir = "utsublind\build-${{ github.run_number }}"
+              $appName = "Utsu2-build-${{ github.run_number }}"
+              jpackage --type msi --runtime-image target/utsu --input jpackage-input --main-jar utsu-0.4.5.jar --main-class com.utsusynth.utsu.UtsuApp --name "$appName" --app-version 0.4.5 --vendor "Utsu2 (community NVDA-accessibility fork)" --win-menu --win-shortcut --install-dir "$installDir" --dest installer-output
             }
           }
 
@@ -93,3 +107,4 @@ jobs:
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
