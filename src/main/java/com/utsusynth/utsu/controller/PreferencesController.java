@@ -8,6 +8,7 @@ import com.utsusynth.utsu.view.config.EditorPreferencesEditor;
 import com.utsusynth.utsu.view.config.EnginePreferencesEditor;
 import com.utsusynth.utsu.view.config.PreferencesEditor;
 import com.utsusynth.utsu.view.config.ThemePreferencesEditor;
+import com.utsusynth.utsu.view.config.WindowsShortcutPreferencesEditor;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -29,6 +30,7 @@ public class PreferencesController implements Localizable {
     private final ThemePreferencesEditor themeEditor;
     private final EditorPreferencesEditor editorEditor;
     private final EnginePreferencesEditor engineEditor;
+    private final WindowsShortcutPreferencesEditor windowsShortcutEditor;
     private final Localizer localizer;
 
     @FXML // fx:id="root"
@@ -54,11 +56,13 @@ public class PreferencesController implements Localizable {
             ThemePreferencesEditor themeEditor,
             EditorPreferencesEditor editorEditor,
             EnginePreferencesEditor engineEditor,
+            WindowsShortcutPreferencesEditor windowsShortcutEditor,
             Localizer localizer) {
         this.preferencesManager = preferencesManager;
         this.themeEditor = themeEditor;
         this.editorEditor = editorEditor;
         this.engineEditor = engineEditor;
+        this.windowsShortcutEditor = windowsShortcutEditor;
         this.localizer = localizer;
     }
 
@@ -67,11 +71,13 @@ public class PreferencesController implements Localizable {
         themeEditor.initialize();
         editorEditor.initialize();
         engineEditor.initialize();
+        windowsShortcutEditor.initialize();
         // Set up table of contents.
         TreeItem<PreferencesEditor> root = new TreeItem<>(null);
         root.getChildren().add(new TreeItem<>(themeEditor));
         root.getChildren().add(new TreeItem<>(editorEditor));
         root.getChildren().add(new TreeItem<>(engineEditor));
+        root.getChildren().add(new TreeItem<>(windowsShortcutEditor));
 
         tableOfContents = new TreeView<>(root);
         tableOfContents.setPrefWidth(vBoxLeft.getPrefWidth());
@@ -125,12 +131,14 @@ public class PreferencesController implements Localizable {
         Stage currentStage = (Stage) root.getScene().getWindow();
         if (!themeEditor.onCloseEditor(currentStage)
                 || !editorEditor.onCloseEditor(currentStage)
-                || !engineEditor.onCloseEditor(currentStage)) {
+                || !engineEditor.onCloseEditor(currentStage)
+                || !windowsShortcutEditor.onCloseEditor(currentStage)) {
             return false;
         }
         themeEditor.revertToPreferences();
         editorEditor.revertToPreferences();
         engineEditor.revertToPreferences();
+        windowsShortcutEditor.revertToPreferences();
         return true;
     }
 
@@ -148,13 +156,16 @@ public class PreferencesController implements Localizable {
         Stage currentStage = (Stage) root.getScene().getWindow();
         if (!themeEditor.onCloseEditor(currentStage)
                 || !editorEditor.onCloseEditor(currentStage)
-                || !engineEditor.onCloseEditor(currentStage)) {
+                || !engineEditor.onCloseEditor(currentStage)
+                || !windowsShortcutEditor.onCloseEditor(currentStage)) {
             return;
         }
         themeEditor.savePreferences();
         editorEditor.savePreferences();
         engineEditor.savePreferences();
+        windowsShortcutEditor.savePreferences();
         preferencesManager.saveToFile();
         currentStage.close();
     }
 }
+

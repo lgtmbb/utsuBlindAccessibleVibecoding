@@ -197,6 +197,10 @@ public class UtsuController implements Localizable {
     @FXML
     private MenuItem extractVoicebankZipItem; // Value injected by FXMLLoader
     @FXML
+    private Menu currentVersionMenu; // Value injected by FXMLLoader
+    @FXML
+    private MenuItem currentVersionInfoItem; // Value injected by FXMLLoader
+    @FXML
     private Menu noteMenu; // Value injected by FXMLLoader
     @FXML
     private MenuItem insertNoteAfterFocusItem; // Value injected by FXMLLoader
@@ -958,6 +962,17 @@ public class UtsuController implements Localizable {
 
     @FXML
     void showAbout(ActionEvent event) {
+        String message = "Utsu is a UTAU-compatible vocal synthesizer editor, created by "
+                + "titinko and contributors.\n\n"
+                + "https://github.com/titinko/utsu";
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
+        alert.setTitle("About Utsu");
+        alert.setHeaderText("About Utsu");
+        alert.showAndWait();
+    }
+
+    @FXML
+    void showCurrentVersionInfo(ActionEvent event) {
         String message = "Utsu2 -- an NVDA/keyboard-accessibility fork of Utsu.\n\n"
                 + "Utsu is a UTAU-compatible vocal synthesizer editor, originally created by "
                 + "titinko and contributors (github.com/titinko/utsu).\n\n"
@@ -972,8 +987,8 @@ public class UtsuController implements Localizable {
                 + "every build:\n"
                 + "https://github.com/lgtmbb/utsuBlindAccessibleVibecoding";
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
-        alert.setTitle("About Utsu2");
-        alert.setHeaderText("About Utsu2");
+        alert.setTitle("About This Build");
+        alert.setHeaderText("About This Build");
         alert.showAndWait();
     }
 
@@ -1103,4 +1118,5 @@ public class UtsuController implements Localizable {
         statusBar.cancelProgress();
     }
 }
+
 

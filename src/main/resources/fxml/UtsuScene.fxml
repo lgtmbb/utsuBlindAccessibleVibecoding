@@ -96,6 +96,11 @@
                 <MenuItem fx:id="extractVoicebankZipItem" mnemonicParsing="false" onAction="#extractVoicebankZip" text="Extract a Voicebank .zip File..." />
               </items>
             </Menu>
+            <Menu fx:id="currentVersionMenu" mnemonicParsing="false" text="Current Version">
+              <items>
+                <MenuItem fx:id="currentVersionInfoItem" mnemonicParsing="false" onAction="#showCurrentVersionInfo" text="About This Build" />
+              </items>
+            </Menu>
             <Menu fx:id="toolsMenu" mnemonicParsing="false" text="Tools">
               <items>
                   <Menu fx:id="bulkEditorMenu" mnemonicParsing="false" text="Bulk Editor">
@@ -159,4 +164,5 @@
       </BorderPane>
    </bottom>
 </BorderPane>
+
 
