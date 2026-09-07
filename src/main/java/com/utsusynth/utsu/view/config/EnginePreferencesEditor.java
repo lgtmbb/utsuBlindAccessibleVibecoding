@@ -97,6 +97,8 @@ public class EnginePreferencesEditor extends PreferencesEditor implements Locali
         VBox resamplerVBox = new VBox(5);
         TextField resamplerName = new TextField();
         resamplerName.setEditable(false);
+        resamplerName.textProperty().addListener((obs, oldVal, newVal) ->
+                resamplerName.setAccessibleText("Current default resampler: " + newVal));
         currentResampler = preferencesManager.getResampler();
         resamplerName.setText(currentResampler.getName());
         HBox resamplerHBox = new HBox(5);
@@ -123,6 +125,8 @@ public class EnginePreferencesEditor extends PreferencesEditor implements Locali
         VBox wavtoolVBox = new VBox(5);
         TextField wavtoolName = new TextField();
         wavtoolName.setEditable(false);
+        wavtoolName.textProperty().addListener((obs, oldVal, newVal) ->
+                wavtoolName.setAccessibleText("Current default wavtool: " + newVal));
         currentWavtool = preferencesManager.getWavtool();
         wavtoolName.setText(guessFileName(currentWavtool));
         HBox wavtoolHBox = new HBox(5);
@@ -149,6 +153,8 @@ public class EnginePreferencesEditor extends PreferencesEditor implements Locali
         VBox voicebankVBox = new VBox(5);
         TextField voicebankName = new TextField();
         voicebankName.setEditable(false);
+        voicebankName.textProperty().addListener((obs, oldVal, newVal) ->
+                voicebankName.setAccessibleText("Current default voicebank: " + newVal));
         voicebankContainer.setVoicebankForRead(preferencesManager.getVoicebank());
         setVoicebankName(voicebankName);
         voicebankName.setText(voicebankContainer.get().getName());
@@ -252,3 +258,4 @@ public class EnginePreferencesEditor extends PreferencesEditor implements Locali
         }).start();
     }
 }
+

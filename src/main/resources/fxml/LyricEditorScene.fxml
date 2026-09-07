@@ -52,12 +52,12 @@
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
                                         <Label fx:id="insertLyricsLabel" text="Insert lyrics separated by whitespace:" />
-                              <TextArea fx:id="lyricsTextArea" />
+                              <TextArea fx:id="lyricsTextArea" accessibleText="Lyrics separated by whitespace" />
                                         <HBox alignment="CENTER_RIGHT" spacing="5.0">
                                             <children>
-                                    <Text fx:id="validateResult" strokeType="OUTSIDE" strokeWidth="0.0" />
+                                    <Text fx:id="validateResult" focusTraversable="true" strokeType="OUTSIDE" strokeWidth="0.0" />
                                     <Pane opacity="0.0" HBox.hgrow="ALWAYS" />
-                                                <Button fx:id="validateLyricsButton" mnemonicParsing="false" onAction="#validateLyrics" text="Validate" />
+                                                <Button fx:id="validateLyricsButton" accessibleText="Validate lyrics" mnemonicParsing="false" onAction="#validateLyrics" text="Validate" />
                                             </children>
                                         </HBox>
                                     </children>
@@ -76,10 +76,10 @@
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
                                         <Label fx:id="textLabel" text="Text:" />
-                                        <TextField fx:id="prefixSuffixTextField" />
+                                        <TextField fx:id="prefixSuffixTextField" accessibleText="Prefix or suffix text" />
                                         <HBox alignment="CENTER_RIGHT">
                                             <children>
-                                                <Button mnemonicParsing="false" onAction="#addPrefixSuffix" text="→">
+                                                <Button accessibleText="Add prefix or suffix" mnemonicParsing="false" onAction="#addPrefixSuffix" text="→">
                                                     <font>
                                                         <Font size="14.0" />
                                                     </font>
@@ -152,13 +152,13 @@
                                     <children>
                               <HBox alignment="CENTER" prefHeight="50.0" spacing="10.0">
                                  <children>
-                                    <ChoiceBox fx:id="fromChoiceBox" prefWidth="150.0" />
+                                    <ChoiceBox fx:id="fromChoiceBox" accessibleText="Convert reclist from" prefWidth="150.0" />
                                     <Label text="→">
                                        <font>
                                           <Font size="14.0" />
                                        </font>
                                     </Label>
-                                    <ChoiceBox fx:id="toChoiceBox" prefWidth="150.0" />
+                                    <ChoiceBox fx:id="toChoiceBox" accessibleText="Convert reclist to" prefWidth="150.0" />
                                  </children>
                               </HBox>
                               <CheckBox fx:id="presampIniCheckBox" mnemonicParsing="false" text="Use presamp.ini" />
@@ -175,3 +175,4 @@
         </TabPane>
     </center>
 </BorderPane>
+

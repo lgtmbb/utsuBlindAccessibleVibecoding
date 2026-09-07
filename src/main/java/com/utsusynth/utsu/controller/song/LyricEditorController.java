@@ -217,6 +217,7 @@ public class LyricEditorController implements Localizable {
         Preferences prefixSuffixPrefs =
                 Preferences.userRoot().node("utsu/lyricEditor/prefixSuffix");
         prefixSuffixList = new ListView<>();
+        prefixSuffixList.setAccessibleText("Prefix and suffix list");
         prefixSuffixList.prefHeightProperty().bind(listHeight);
         prefixSuffixList.setPrefWidth(150);
         prefixSuffixList.setCellFactory(source -> {
@@ -228,12 +229,15 @@ public class LyricEditorController implements Localizable {
                     setText(null);
                     if (empty || item == null || item.isEmpty()) {
                         setGraphic(null);
+                        setAccessibleText(null);
                     } else {
+                        setAccessibleText(item);
                         BorderPane graphic = new BorderPane();
                         Text itemText = new Text(item);
                         itemText.getStyleClass().add("list-text");
                         graphic.setLeft(itemText);
                         Button closeButton = new Button("X");
+                        closeButton.setAccessibleText("Remove " + item);
                         closeButton.setOnAction(event -> {
                             if (getIndex() >= configManager.getNumDefaultPrefixSuffix()) {
                                 getListView().getItems().remove(getIndex());
@@ -261,6 +265,17 @@ public class LyricEditorController implements Localizable {
             return listCell;
         });
         prefixSuffixList.setItems(prefixSuffix);
+        // Keyboard equivalent of the mouse click handler above: without this, using the
+        // arrow keys to move the ListView's own selection highlight (its normal built-in
+        // keyboard behavior) never actually updated the prefix/suffix text field, since that
+        // logic was only ever wired to mouse clicks.
+        prefixSuffixList.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldIndex, newIndex) -> {
+                    int index = newIndex.intValue();
+                    if (index >= 0 && selectFromPrefixSuffixList(index)) {
+                        prefixSuffixPrefs.putInt("listIndex", index);
+                    }
+                });
         // Select cached index if possible.
         int cachedIndex = prefixSuffixPrefs.getInt("listIndex", 0);
         if (selectFromPrefixSuffixList(cachedIndex)) {
@@ -490,3 +505,4 @@ public class LyricEditorController implements Localizable {
         currentStage.close();
     }
 }
+

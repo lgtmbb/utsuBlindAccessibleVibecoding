@@ -129,15 +129,10 @@ public class ThemePreferencesEditor extends PreferencesEditor implements Localiz
         themeChoiceRow = new HBox(10);
         initializeThemeChoiceBox();
 
-        Label themeSettingsBox = new Label(" ⚙˯ ");
+        MenuButton themeSettingsBox = new MenuButton("\u2699");
+        themeSettingsBox.setAccessibleText(
+                "Theme options: duplicate, edit, delete, import, or export");
         themeSettingsBox.getStyleClass().add("theme-settings");
-        themeSettingsBox.setOnMouseEntered(event -> {
-            themeSettingsBox.getStyleClass().add("highlighted");
-        });
-        themeSettingsBox.setOnMouseExited(event -> {
-            themeSettingsBox.getStyleClass().remove("highlighted");
-        });
-        ContextMenu contextMenu = new ContextMenu();
         MenuItem duplicateItem = new MenuItem("Duplicate");
         duplicateItem.setOnAction(event -> {
             newThemePending = true;
@@ -178,7 +173,7 @@ public class ThemePreferencesEditor extends PreferencesEditor implements Localiz
         });
         MenuItem exportItem = new MenuItem("Export...");
         exportItem.setOnAction(event -> themeManager.exportTheme(themeChoiceBox.getValue()));
-        contextMenu.getItems().addAll(
+        themeSettingsBox.getItems().addAll(
                 duplicateItem,
                 new SeparatorMenuItem(),
                 editItem,
@@ -186,7 +181,10 @@ public class ThemePreferencesEditor extends PreferencesEditor implements Localiz
                 new SeparatorMenuItem(),
                 importItem,
                 exportItem);
-        contextMenu.setOnShowing(event -> {
+        themeSettingsBox.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (!isShowing) {
+                return;
+            }
             Theme currentTheme = themeChoiceBox.getValue();
             editItem.setDisable(ThemeManager.isDefault(currentTheme));
             deleteItem.setDisable(ThemeManager.isDefault(currentTheme));
@@ -196,10 +194,6 @@ public class ThemePreferencesEditor extends PreferencesEditor implements Localiz
             deleteItem.setText(localizer.getMessage("menu.edit.delete"));
             importItem.setText(localizer.getMessage("preferences.colorScheme.import"));
             exportItem.setText(localizer.getMessage("preferences.colorScheme.export"));
-        });
-        themeSettingsBox.setOnMouseClicked(event -> {
-            contextMenu.hide();
-            contextMenu.show(themeChoiceRow, event.getScreenX(), event.getScreenY());
         });
         themeChoiceRow.getChildren().addAll(themeChoiceBox, themeSettingsBox);
     }
@@ -300,3 +294,4 @@ public class ThemePreferencesEditor extends PreferencesEditor implements Localiz
         return true;
     }
 }
+
