@@ -63,10 +63,10 @@ already bound -- see "Added by this fork" below for the one collision that was c
 |---|---|---|
 | Up Arrow | Move focused note's pitch up one semitone | Not bound to anything above |
 | Down Arrow | Move focused note's pitch down one semitone | Not bound to anything above |
-| Ctrl+Left Arrow | Move focused note earlier in time by one quantize step | Not bound to anything above |
-| Ctrl+Right Arrow | Move focused note later in time by one quantize step | Not bound to anything above |
-| Shift+Left Arrow | Shrink focused note's duration by one quantize step | Not bound to anything above |
-| Shift+Right Arrow | Extend focused note's duration by one quantize step | Not bound to anything above |
+| Ctrl+Shift+Left Arrow | Move focused note earlier in time by one quantize step | **Originally Ctrl+Left (no Shift); moved to Ctrl+Shift+Left in response to a report that Ctrl+Left/Right felt slow switching between the top-level menus (File, Edit, etc.), to rule out this shortcut as a contributing cause.** Checked: free everywhere else in the codebase, no Windows or NVDA reservation. Does **not** change duration -- see Shift+Left below for that. |
+| Ctrl+Shift+Right Arrow | Move focused note later in time by one quantize step | Same as above. |
+| Shift+Left Arrow | Shrink focused note's duration by one quantize step | Not bound to anything above. This is the shortcut that changes note *length* -- Ctrl+Shift+Left/Right (above) only changes *position*. |
+| Shift+Right Arrow | Extend focused note's duration by one quantize step | Same as above. |
 | Ctrl+F2 | Insert a new note right after the focused note (also in the new Note menu) | **Requested as Ctrl+Shift+N (collided with "New Voicebank"), then tried as Ctrl+Alt+N -- both wrong.** Ctrl+Alt+&lt;letter&gt; is fundamentally unsafe on Windows for any international/non-US keyboard layout (Hungarian included): Windows treats AltGr (the right-hand Alt key present on those layouts) as a synthetic Ctrl+Alt press, so any Ctrl+Alt+letter shortcut silently fires instead of the special character the user meant to type -- documented directly by Microsoft/VS Code/PowerToys/JetBrains bug trackers, including a Hungarian-layout example ("Press AltGr+B... Actual: the Ctrl+Alt+B shortcut fires"). Worse, Ctrl+Alt+N specifically is NVDA's own default shortcut to start NVDA itself, so it was a double conflict. Function keys are never remapped by AltGr on any keyboard layout, so Ctrl+F2 was used instead: not used anywhere in this codebase, not an NVDA gesture (NVDA's own commands need its Insert/Caps-Lock modifier, not plain Ctrl+F-key), and not a Windows-reserved global shortcut (Ctrl+F2 is only meaningful inside specific apps like Word/Excel, not system-wide) |
 | Alt+N | Open "Create Note at Position" dialog (also in the new Note menu) | **Originally bound to Ctrl+N, which collided with the pre-existing "New Song" accelerator above -- caught and moved to Alt+N.** No accelerator in this codebase uses the Alt modifier; every `Menu`/`MenuItem` in `UtsuScene.fxml` has `mnemonicParsing="false"`, so Alt+letter cannot collide with a menu mnemonic in this app either; Windows' own global Alt-combinations (Alt+Tab, Alt+F4, Alt+Space, Alt+Esc) do not use letter keys; NVDA's own commands are bound to its modifier key (Insert, or Caps Lock if reconfigured), not plain Alt+letter, on native desktop apps |
 
@@ -102,3 +102,4 @@ keyboard layout.
   character-producing keys.
 - This list should be updated whenever a new shortcut is added anywhere in the codebase, and
   re-checked against this same table first.
+
