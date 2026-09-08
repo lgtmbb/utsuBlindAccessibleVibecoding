@@ -104,7 +104,9 @@ public class UtsuApp extends Application {
 
         // Set the stage.
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Utsu");
+        String buildNumber = System.getProperty("utsu2.buildNumber", "");
+        primaryStage.setTitle(
+                buildNumber.isEmpty() ? "Utsu2" : "Utsu2 (build " + buildNumber + ")");
         primaryStage.show();
 
         UtsuController controller = loader.getController();
@@ -307,4 +309,5 @@ public class UtsuApp extends Application {
         launch(args);
     }
 }
+
 

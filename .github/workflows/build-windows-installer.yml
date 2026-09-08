@@ -71,7 +71,7 @@ jobs:
               #     comparison.
               $installDir = "utsublind\build-${{ github.run_number }}"
               $appName = "Utsu2-build-${{ github.run_number }}"
-              jpackage --type msi --runtime-image target/utsu --input jpackage-input --main-jar utsu-0.4.5.jar --main-class com.utsusynth.utsu.UtsuApp --name "$appName" --app-version 0.4.5 --vendor "Utsu2 (community NVDA-accessibility fork)" --win-menu --win-shortcut --win-shortcut-prompt --install-dir "$installDir" --dest installer-output
+              jpackage --type msi --runtime-image target/utsu --input jpackage-input --main-jar utsu-0.4.5.jar --main-class com.utsusynth.utsu.UtsuApp --name "$appName" --app-version 0.4.5 --vendor "Utsu2 (community NVDA-accessibility fork)" --win-menu --win-shortcut --win-shortcut-prompt --win-dir-chooser --install-dir "$installDir" --java-options "-Dutsu2.buildNumber=${{ github.run_number }}" --dest installer-output
             }
           }
 
@@ -107,4 +107,5 @@ jobs:
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 

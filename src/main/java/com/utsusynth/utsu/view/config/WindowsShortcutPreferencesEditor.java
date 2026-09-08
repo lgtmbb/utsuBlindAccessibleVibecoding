@@ -15,17 +15,18 @@ import java.util.prefs.Preferences;
 import java.util.ResourceBundle;
 
 /**
- * Preferences tab for this fork's own settings: the Windows desktop-shortcut integration, and
- * other small Utsu2-specific behaviors that don't belong in the upstream Theme/Editor/Engine
- * tabs. The installer's own "--win-shortcut-prompt" screen only offers the shortcut choice once,
- * at install time -- this tab lets it be changed afterward too, without reinstalling, by
- * creating or deleting the desktop .lnk file directly for whichever build is currently running.
+ * Preferences tab for this fork's own settings: Windows desktop/Start Menu shortcut integration,
+ * and other small Utsu2-specific behaviors that don't belong in the upstream Theme/Editor/Engine
+ * tabs. The installer's own "--win-shortcut-prompt" screen only offers these choices once, at
+ * install time -- this tab lets them be changed afterward too, without reinstalling, by
+ * creating or deleting the relevant .lnk file directly for whichever build is currently running.
  */
 public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
     private String displayName = "Utsu2 Settings";
     private BorderPane view;
     private Label description;
     private CheckBox desktopShortcutCheckbox;
+    private CheckBox startMenuShortcutCheckbox;
     private Label statusLabel;
     private CheckBox confirmTabCloseCheckbox;
     private static final Preferences UTSU2_PREFS = Preferences.userRoot().node("utsu2");
@@ -53,7 +54,7 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
     @Override
     protected Node initializeInternal() {
         description = new Label(
-                "Controls the desktop shortcut for this specific build ("
+                "Controls the desktop and Start Menu shortcuts for this specific build ("
                         + getShortcutBaseName() + "). Installing a different build does not "
                         + "affect this setting for other builds.");
         description.setWrapText(true);
@@ -61,7 +62,11 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         GridPane.setValignment(description, VPos.TOP);
 
         desktopShortcutCheckbox = new CheckBox("Create a desktop shortcut for this build");
-        desktopShortcutCheckbox.setSelected(getShortcutFile().exists());
+        desktopShortcutCheckbox.setSelected(getDesktopShortcutFile().exists());
+
+        startMenuShortcutCheckbox =
+                new CheckBox("Create a Start Menu shortcut for this build");
+        startMenuShortcutCheckbox.setSelected(getStartMenuShortcutFile().exists());
 
         statusLabel = new Label("");
         statusLabel.setWrapText(true);
@@ -79,9 +84,10 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         viewInternal.setVgap(10);
         viewInternal.add(description, 0, 0);
         viewInternal.add(desktopShortcutCheckbox, 0, 1);
-        viewInternal.add(statusLabel, 0, 2);
-        viewInternal.add(separator, 0, 3);
-        viewInternal.add(confirmTabCloseCheckbox, 0, 4);
+        viewInternal.add(startMenuShortcutCheckbox, 0, 2);
+        viewInternal.add(statusLabel, 0, 3);
+        viewInternal.add(separator, 0, 4);
+        viewInternal.add(confirmTabCloseCheckbox, 0, 5);
         return viewInternal;
     }
 
@@ -92,30 +98,35 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
 
     @Override
     public void savePreferences() {
-        boolean shouldExist = desktopShortcutCheckbox.isSelected();
-        boolean currentlyExists = getShortcutFile().exists();
-        if (shouldExist != currentlyExists) {
-            try {
-                if (shouldExist) {
-                    createDesktopShortcut();
-                } else {
-                    if (!getShortcutFile().delete()) {
-                        statusLabel.setText("Could not remove the desktop shortcut.");
-                    }
-                }
-            } catch (IOException | InterruptedException e) {
-                statusLabel.setText("Could not update the desktop shortcut: " + e.getMessage());
-            }
-        }
+        syncShortcut(desktopShortcutCheckbox.isSelected(), getDesktopShortcutFile());
+        syncShortcut(startMenuShortcutCheckbox.isSelected(), getStartMenuShortcutFile());
         UTSU2_PREFS.putBoolean(
                 "confirmTabCloseOnDelete", confirmTabCloseCheckbox.isSelected());
     }
 
     @Override
     public void revertToPreferences() {
-        desktopShortcutCheckbox.setSelected(getShortcutFile().exists());
+        desktopShortcutCheckbox.setSelected(getDesktopShortcutFile().exists());
+        startMenuShortcutCheckbox.setSelected(getStartMenuShortcutFile().exists());
         confirmTabCloseCheckbox.setSelected(
                 UTSU2_PREFS.getBoolean("confirmTabCloseOnDelete", true));
+    }
+
+    private void syncShortcut(boolean shouldExist, File shortcutFile) {
+        boolean currentlyExists = shortcutFile.exists();
+        if (shouldExist == currentlyExists) {
+            return;
+        }
+        try {
+            if (shouldExist) {
+                createShortcut(shortcutFile);
+            } else if (!shortcutFile.delete()) {
+                statusLabel.setText("Could not remove " + shortcutFile.getName() + ".");
+            }
+        } catch (IOException | InterruptedException e) {
+            statusLabel.setText(
+                    "Could not update " + shortcutFile.getName() + ": " + e.getMessage());
+        }
     }
 
     /**
@@ -136,26 +147,37 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         return fileName.isEmpty() ? "Utsu2" : fileName;
     }
 
-    private File getShortcutFile() {
+    private File getDesktopShortcutFile() {
         String desktop = System.getProperty("user.home") + File.separator + "Desktop";
         return new File(desktop, getShortcutBaseName() + ".lnk");
     }
 
-    private void createDesktopShortcut() throws IOException, InterruptedException {
+    private File getStartMenuShortcutFile() {
+        String startMenu = System.getenv("APPDATA")
+                + File.separator + "Microsoft" + File.separator + "Windows"
+                + File.separator + "Start Menu" + File.separator + "Programs";
+        return new File(startMenu, getShortcutBaseName() + ".lnk");
+    }
+
+    private void createShortcut(File shortcutFile) throws IOException, InterruptedException {
         String exePath = getRunningExecutablePath();
         if (exePath.isEmpty()) {
             statusLabel.setText("Could not determine this build's own program location.");
             return;
         }
-        File shortcutFile = getShortcutFile();
         File workingDir = new File(exePath).getParentFile();
+        File shortcutDir = shortcutFile.getParentFile();
+        if (shortcutDir != null && !shortcutDir.exists()) {
+            shortcutDir.mkdirs();
+        }
         String script = "$WshShell = New-Object -ComObject WScript.Shell\r\n"
-                + "$Shortcut = $WshShell.CreateShortcut('" + shortcutFile.getAbsolutePath().replace("'", "''") + "')\r\n"
+                + "$Shortcut = $WshShell.CreateShortcut('"
+                + shortcutFile.getAbsolutePath().replace("'", "''") + "')\r\n"
                 + "$Shortcut.TargetPath = '" + exePath.replace("'", "''") + "'\r\n"
                 + "$Shortcut.WorkingDirectory = '"
                 + (workingDir == null ? "" : workingDir.getAbsolutePath().replace("'", "''")) + "'\r\n"
                 + "$Shortcut.Save()\r\n";
-        File scriptFile = File.createTempFile("utsu2-desktop-shortcut", ".ps1");
+        File scriptFile = File.createTempFile("utsu2-shortcut", ".ps1");
         scriptFile.deleteOnExit();
         java.nio.file.Files.writeString(scriptFile.toPath(), script,
                 java.nio.charset.StandardCharsets.UTF_8);
@@ -165,8 +187,7 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
                 .start();
         int exitCode = process.waitFor();
         if (exitCode != 0 || !shortcutFile.exists()) {
-            statusLabel.setText("Could not create the desktop shortcut.");
+            statusLabel.setText("Could not create " + shortcutFile.getName() + ".");
         }
     }
 }
-

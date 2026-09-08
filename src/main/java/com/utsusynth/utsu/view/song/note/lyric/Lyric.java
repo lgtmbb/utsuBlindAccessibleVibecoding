@@ -171,8 +171,10 @@ public class Lyric implements TrackItem {
     public void openTextField() {
         closeTextFieldIfNeeded();
         AnchorPane lyricPane = trackNote.getLyricPane();
+        Label textFieldLabel = new Label("Lyric");
+        textFieldLabel.setManaged(false);
         TextField textField = new TextField();
-        textField.setAccessibleText("Lyric");
+        textFieldLabel.setLabelFor(textField);
         textField.setMaxWidth(Quantizer.TEXT_FIELD_WIDTH);
         textField.setMaxHeight(Quantizer.TEXT_FIELD_HEIGHT);
         textField.setText(lyric.get());
@@ -198,6 +200,7 @@ public class Lyric implements TrackItem {
                     Math.min(
                             lyricPane.getHeight() - Quantizer.TEXT_FIELD_HEIGHT,
                             lyricScreenPosition.getMinY() - paneScreenPosition.getMinY())));
+            lyricPane.getChildren().add(textFieldLabel);
             lyricPane.getChildren().add(textField);
             editMode.set(true);
             PauseTransition briefPause = new PauseTransition(Duration.millis(50));
@@ -225,7 +228,8 @@ public class Lyric implements TrackItem {
                 newLyric = ((TextField) child).getText();
             }
         }
-        lyricPane.getChildren().removeIf(child -> child instanceof TextField);
+        lyricPane.getChildren().removeIf(
+                child -> child instanceof TextField || child instanceof Label);
         if (!oldLyric.equals(newLyric)) {
             setVisibleLyric(newLyric);
             trackNote.replaceSongLyric(oldLyric, newLyric);
@@ -252,4 +256,5 @@ public class Lyric implements TrackItem {
         }
     }
 }
+
 
