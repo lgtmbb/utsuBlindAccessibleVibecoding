@@ -172,6 +172,7 @@ public class Lyric implements TrackItem {
         closeTextFieldIfNeeded();
         AnchorPane lyricPane = trackNote.getLyricPane();
         TextField textField = new TextField();
+        textField.setAccessibleText("Lyric");
         textField.setMaxWidth(Quantizer.TEXT_FIELD_WIDTH);
         textField.setMaxHeight(Quantizer.TEXT_FIELD_HEIGHT);
         textField.setText(lyric.get());
@@ -251,3 +252,4 @@ public class Lyric implements TrackItem {
         }
     }
 }
+

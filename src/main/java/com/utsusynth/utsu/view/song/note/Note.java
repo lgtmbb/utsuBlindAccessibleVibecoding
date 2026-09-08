@@ -257,7 +257,13 @@ public class Note implements TrackItem, Comparable<Note> {
         // AccessibleAttribute.TEXT.
         if (!isDisplayOnly) {
             newLayout.setFocusTraversable(true);
-            newLayout.setAccessibleRole(AccessibleRole.NODE);
+            // AccessibleRole.NODE is a generic fallback with no defined spoken role, so NVDA
+            // had nothing to announce beyond (sometimes) the accessible text -- confirmed by
+            // Anna's testing that Tab-navigation announced nothing at all. Each note is
+            // conceptually one item in a sequence, and is rendered inside a real ListView
+            // (Track.getNoteTrack()), so LIST_ITEM is both the semantically correct role and
+            // one NVDA has well-established, reliable handling for.
+            newLayout.setAccessibleRole(AccessibleRole.LIST_ITEM);
             newLayout.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
                 if (isFocused && isValid()) {
                     track.highlightExclusive(thisNote);
@@ -272,12 +278,12 @@ public class Note implements TrackItem, Comparable<Note> {
                         && !event.isShortcutDown()) {
                     moveNoteByKeyboard(0, -1);
                     event.consume();
-                } else if (new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.SHORTCUT_DOWN)
-                        .match(event)) {
+                } else if (new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.SHORTCUT_DOWN,
+                        KeyCombination.SHIFT_DOWN).match(event)) {
                     moveNoteByKeyboard(quantizer.getQuant(), 0);
                     event.consume();
-                } else if (new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN)
-                        .match(event)) {
+                } else if (new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN,
+                        KeyCombination.SHIFT_DOWN).match(event)) {
                     moveNoteByKeyboard(-quantizer.getQuant(), 0);
                     event.consume();
                 } else if (new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.SHIFT_DOWN)
@@ -904,3 +910,4 @@ public class Note implements TrackItem, Comparable<Note> {
         return result;
     }
 }
+
