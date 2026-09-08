@@ -414,7 +414,10 @@ public class UtsuController implements Localizable {
      * @return true if an override behavior for this key was found, false otherwise
      */
     public boolean onKeyPressed(KeyEvent keyEvent) {
-        if (new KeyCodeCombination(KeyCode.EQUALS, SHORTCUT_DOWN).match(keyEvent)) {
+        if (new KeyCodeCombination(KeyCode.DELETE).match(keyEvent)) {
+            closeCurrentTabViaDeleteKey();
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.EQUALS, SHORTCUT_DOWN).match(keyEvent)) {
             zoomInH(null);
             return true;
         } else if (new KeyCodeCombination(KeyCode.MINUS, SHORTCUT_DOWN).match(keyEvent)) {
@@ -809,6 +812,39 @@ public class UtsuController implements Localizable {
         tabs.getTabs().remove(tab);
     }
 
+    /**
+     * Keyboard equivalent of clicking a tab's own close ("x") button, using the plain Delete
+     * key. Only closes the currently selected tab, and only when more than one tab is open (so
+     * this can never close the last remaining tab by accident, leaving nothing open). Asks for
+     * confirmation first by default -- Delete is easy to press without meaning to close a whole
+     * project, unlike deliberately clicking a small close button -- but this can be turned off
+     * in Preferences ("Utsu2 Settings") for anyone who finds the confirmation more annoying than
+     * protective.
+     */
+    private void closeCurrentTabViaDeleteKey() {
+        if (tabs.getTabs().size() <= 1) {
+            return;
+        }
+        Tab currentTab = tabs.getSelectionModel().getSelectedItem();
+        if (currentTab == null) {
+            return;
+        }
+        boolean shouldConfirm = Preferences.userRoot()
+                .node("utsu2").getBoolean("confirmTabCloseOnDelete", true);
+        if (shouldConfirm) {
+            Alert confirm = new Alert(
+                    Alert.AlertType.CONFIRMATION,
+                    "Close the tab \"" + currentTab.getText() + "\"?",
+                    ButtonType.YES, ButtonType.NO);
+            confirm.setTitle("Close Tab");
+            confirm.setHeaderText("Close Tab");
+            if (confirm.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+                return;
+            }
+        }
+        closeTab(currentTab);
+    }
+
     @FXML
     void saveFile(ActionEvent event) {
         if (!tabs.getTabs().isEmpty()) {
@@ -1118,5 +1154,6 @@ public class UtsuController implements Localizable {
         statusBar.cancelProgress();
     }
 }
+
 
 

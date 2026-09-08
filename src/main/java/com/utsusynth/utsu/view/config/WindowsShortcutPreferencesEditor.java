@@ -4,26 +4,31 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 import java.util.ResourceBundle;
 
 /**
- * Preferences tab for this fork's Windows shortcut integration. The installer's own
- * "--win-shortcut-prompt" screen only offers this choice once, at install time -- this tab lets
- * it be changed afterward too, without reinstalling, by creating or deleting the desktop .lnk
- * file directly for whichever build is currently running.
+ * Preferences tab for this fork's own settings: the Windows desktop-shortcut integration, and
+ * other small Utsu2-specific behaviors that don't belong in the upstream Theme/Editor/Engine
+ * tabs. The installer's own "--win-shortcut-prompt" screen only offers the shortcut choice once,
+ * at install time -- this tab lets it be changed afterward too, without reinstalling, by
+ * creating or deleting the desktop .lnk file directly for whichever build is currently running.
  */
 public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
-    private String displayName = "Windows Shortcut";
+    private String displayName = "Utsu2 Settings";
     private BorderPane view;
     private Label description;
     private CheckBox desktopShortcutCheckbox;
     private Label statusLabel;
+    private CheckBox confirmTabCloseCheckbox;
+    private static final Preferences UTSU2_PREFS = Preferences.userRoot().node("utsu2");
 
     @Override
     public String getDisplayName() {
@@ -62,12 +67,21 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         statusLabel.setWrapText(true);
         statusLabel.setMaxWidth(280);
 
+        Separator separator = new Separator();
+
+        confirmTabCloseCheckbox = new CheckBox(
+                "Ask for confirmation when closing a tab with the Delete key");
+        confirmTabCloseCheckbox.setSelected(
+                UTSU2_PREFS.getBoolean("confirmTabCloseOnDelete", true));
+
         GridPane viewInternal = new GridPane();
         viewInternal.setHgap(10);
         viewInternal.setVgap(10);
         viewInternal.add(description, 0, 0);
         viewInternal.add(desktopShortcutCheckbox, 0, 1);
         viewInternal.add(statusLabel, 0, 2);
+        viewInternal.add(separator, 0, 3);
+        viewInternal.add(confirmTabCloseCheckbox, 0, 4);
         return viewInternal;
     }
 
@@ -80,25 +94,28 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
     public void savePreferences() {
         boolean shouldExist = desktopShortcutCheckbox.isSelected();
         boolean currentlyExists = getShortcutFile().exists();
-        if (shouldExist == currentlyExists) {
-            return; // Nothing to do.
-        }
-        try {
-            if (shouldExist) {
-                createDesktopShortcut();
-            } else {
-                if (!getShortcutFile().delete()) {
-                    statusLabel.setText("Could not remove the desktop shortcut.");
+        if (shouldExist != currentlyExists) {
+            try {
+                if (shouldExist) {
+                    createDesktopShortcut();
+                } else {
+                    if (!getShortcutFile().delete()) {
+                        statusLabel.setText("Could not remove the desktop shortcut.");
+                    }
                 }
+            } catch (IOException | InterruptedException e) {
+                statusLabel.setText("Could not update the desktop shortcut: " + e.getMessage());
             }
-        } catch (IOException | InterruptedException e) {
-            statusLabel.setText("Could not update the desktop shortcut: " + e.getMessage());
         }
+        UTSU2_PREFS.putBoolean(
+                "confirmTabCloseOnDelete", confirmTabCloseCheckbox.isSelected());
     }
 
     @Override
     public void revertToPreferences() {
         desktopShortcutCheckbox.setSelected(getShortcutFile().exists());
+        confirmTabCloseCheckbox.setSelected(
+                UTSU2_PREFS.getBoolean("confirmTabCloseOnDelete", true));
     }
 
     /**
@@ -152,3 +169,4 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         }
     }
 }
+
