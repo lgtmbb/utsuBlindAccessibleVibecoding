@@ -259,7 +259,7 @@ public class Note implements TrackItem, Comparable<Note> {
             newLayout.setFocusTraversable(true);
             // AccessibleRole.NODE is a generic fallback with no defined spoken role, so NVDA
             // had nothing to announce beyond (sometimes) the accessible text -- confirmed by
-            // Anna's testing that Tab-navigation announced nothing at all. Each note is
+            // The developer's testing that Tab-navigation announced nothing at all. Each note is
             // conceptually one item in a sequence, and is rendered inside a real ListView
             // (Track.getNoteTrack()), so LIST_ITEM is both the semantically correct role and
             // one NVDA has well-established, reliable handling for.
@@ -910,4 +910,5 @@ public class Note implements TrackItem, Comparable<Note> {
         return result;
     }
 }
+
 
