@@ -16,6 +16,7 @@ import com.utsusynth.utsu.model.voicebank.LyricConfig;
 import com.utsusynth.utsu.model.voicebank.Voicebank;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -419,6 +420,17 @@ public class NotePropertiesController implements Localizable {
             note.setConfigData(newNoteData);
         }
         callback.updateNotes(oldData.build(), newData.build());
+        // Give explicit confirmation that Apply actually took effect: several of these
+        // properties (velocity, preutter, overlap, intensity, modulation, flags) have no
+        // audible or visible effect on the note itself that a screen-reader user could notice,
+        // so without this there was no way to tell the change was applied at all.
+        Alert confirmation = new Alert(
+                Alert.AlertType.INFORMATION,
+                "Applied changes to " + notes.size() + " note"
+                        + (notes.size() == 1 ? "" : "s") + ".");
+        confirmation.setTitle("Note Properties Applied");
+        confirmation.setHeaderText("Note Properties Applied");
+        confirmation.showAndWait();
         Stage currentStage = (Stage) root.getScene().getWindow();
         currentStage.close();
     }
@@ -456,3 +468,4 @@ public class NotePropertiesController implements Localizable {
                 .equals(RoundUtils.roundDecimal(value2, "#.#"));
     }
 }
+
