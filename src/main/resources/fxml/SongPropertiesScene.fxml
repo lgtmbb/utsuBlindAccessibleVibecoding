@@ -42,21 +42,22 @@
         </rowConstraints>
          <children>
             <Slider fx:id="tempoSlider" blockIncrement="1.0" max="260.0" min="50.0" minorTickCount="25" snapToTicks="true" value="125.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-            <Label fx:id="projectNameLabel" text="Project Name" GridPane.halignment="CENTER" />
-            <Label fx:id="outputFileLabel" text="Output File" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-            <Label fx:id="flagsLabel" text="Flags" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-            <Label fx:id="resamplerLabel" text="Resampler" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-            <Label fx:id="wavtoolLabel" text="Wavtool" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-            <Label fx:id="voicebankLabel" text="Voicebank" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
-            <Label fx:id="tempoLabel" text="Tempo" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+            <Label fx:id="projectNameLabel" text="Project Name" labelFor="$projectNameTF" GridPane.halignment="CENTER" />
+            <Label fx:id="outputFileLabel" text="Output File" labelFor="$outputFileTF" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+            <Label fx:id="flagsLabel" text="Flags" labelFor="$flagsTF" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+            <Label fx:id="resamplerLabel" text="Resampler" labelFor="$resamplerChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+            <Label fx:id="wavtoolLabel" text="Wavtool" labelFor="$wavtoolChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+            <Label fx:id="voicebankLabel" text="Voicebank" labelFor="$voicebankChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+            <Label fx:id="tempoLabel" text="Tempo" labelFor="$tempoSlider" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+            <Label fx:id="tempoValueLabel" text="Tempo value" managed="false" labelFor="$curTempo" GridPane.columnIndex="2" GridPane.rowIndex="6" />
             <TextField fx:id="projectNameTF" GridPane.columnIndex="1" />
             <TextField fx:id="outputFileTF" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <TextField fx:id="flagsTF" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <ChoiceBox fx:id="resamplerChoiceBox" prefWidth="160.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             <ChoiceBox fx:id="wavtoolChoiceBox" prefWidth="160.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-             <Button fx:id="importWavtoolButton" mnemonicParsing="false" onAction="#importWavtool" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-             <Button fx:id="importResamplerButton" mnemonicParsing="false" onAction="#importResampler" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-             <Button fx:id="importVoicebankButton" mnemonicParsing="false" onAction="#importVoicebank" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+             <Button fx:id="importWavtoolButton" accessibleText="Import Wavtool" mnemonicParsing="false" onAction="#importWavtool" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+             <Button fx:id="importResamplerButton" accessibleText="Import Resampler" mnemonicParsing="false" onAction="#importResampler" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+             <Button fx:id="importVoicebankButton" accessibleText="Import Voicebank" mnemonicParsing="false" onAction="#importVoicebank" text="Import..." GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
              <TextField fx:id="curTempo" text="125" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="6">
                <GridPane.margin>
                   <Insets left="10.0" right="10.0" />
@@ -73,3 +74,4 @@
       </GridPane>
    </center>
 </BorderPane>
+

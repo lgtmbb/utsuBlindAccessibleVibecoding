@@ -32,7 +32,7 @@
                 </Separator>
                 <HBox alignment="CENTER_RIGHT" prefHeight="40.0" spacing="5.0">
                     <children>
-                        <Label fx:id="noteLengthFilterLabel" text="Filter to:">
+                        <Label fx:id="noteLengthFilterLabel" text="Filter to:" labelFor="$noteLengthChoiceBox">
                             <HBox.margin>
                                 <Insets />
                             </HBox.margin>
@@ -81,7 +81,7 @@
                      <center>
                         <VBox fx:id="portamentoVBox" alignment="CENTER_RIGHT" minWidth="300.0" spacing="5.0" BorderPane.alignment="CENTER">
                            <children>
-                              <Button mnemonicParsing="false" onAction="#addPortamentoConfig" text="→">
+                              <Button accessibleText="Add portamento preset" mnemonicParsing="false" onAction="#addPortamentoConfig" text="→">
                                  <font>
                                     <Font size="14.0" />
                                  </font>
@@ -124,14 +124,14 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label fx:id="vibratoLengthLabel" text="Length" />
-                              <Label fx:id="vibratoAmplitudeLabel" text="Amplitude" GridPane.rowIndex="1" />
-                              <Label fx:id="vibratoPhaseInLabel" text="Phase In" GridPane.rowIndex="2" />
-                              <Label fx:id="vibratoPhaseOutLabel" text="Phase Out" GridPane.rowIndex="3" />
-                              <Label fx:id="vibratoFrequencyLabel" text="Frequency" GridPane.rowIndex="4" />
-                              <Label fx:id="vibratoFreqSlopeLabel" text="Freq. Slope" GridPane.rowIndex="5" />
-                              <Label fx:id="vibratoHeightLabel" text="Height" GridPane.rowIndex="6" />
-                              <Label fx:id="vibratoPhaseLabel" text="Phase" GridPane.rowIndex="7" />
+                              <Label fx:id="vibratoLengthLabel" text="Length"  labelFor="$vibratoLengthTF" />
+                              <Label fx:id="vibratoAmplitudeLabel" text="Amplitude" GridPane.rowIndex="1"  labelFor="$vibratoAmplitudeTF" />
+                              <Label fx:id="vibratoPhaseInLabel" text="Phase In" GridPane.rowIndex="2"  labelFor="$vibratoPhaseInTF" />
+                              <Label fx:id="vibratoPhaseOutLabel" text="Phase Out" GridPane.rowIndex="3"  labelFor="$vibratoPhaseOutTF" />
+                              <Label fx:id="vibratoFrequencyLabel" text="Frequency" GridPane.rowIndex="4"  labelFor="$vibratoFrequencyTF" />
+                              <Label fx:id="vibratoFreqSlopeLabel" text="Freq. Slope" GridPane.rowIndex="5"  labelFor="$vibratoFreqSlopeTF" />
+                              <Label fx:id="vibratoHeightLabel" text="Height" GridPane.rowIndex="6"  labelFor="$vibratoHeightTF" />
+                              <Label fx:id="vibratoPhaseLabel" text="Phase" GridPane.rowIndex="7"  labelFor="$vibratoPhaseTF" />
                               <TextField fx:id="vibratoLengthTF" GridPane.columnIndex="1" />
                               <TextField fx:id="vibratoAmplitudeTF" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                               <TextField fx:id="vibratoPhaseInTF" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -154,10 +154,10 @@
                            <children>
                               <HBox alignment="CENTER_RIGHT" prefHeight="40.0" spacing="5.0">
                                  <children>
-                                    <Label fx:id="vibratoCheckboxLabel" text="Vibrato" />
+                                    <Label fx:id="vibratoCheckboxLabel" text="Vibrato" labelFor="$vibratoCheckbox" />
                                     <CheckBox fx:id="vibratoCheckbox" graphicTextGap="0.0" mnemonicParsing="false" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#addVibratoConfig" text="→">
+                                    <Button alignment="CENTER_RIGHT" accessibleText="Add vibrato preset" mnemonicParsing="false" onAction="#addVibratoConfig" text="→">
                                        <font>
                                           <Font size="14.0" />
                                        </font>
@@ -201,7 +201,7 @@
                      <center>
                           <VBox fx:id="envelopeVBox" alignment="CENTER_RIGHT" minWidth="300.0" spacing="5.0" BorderPane.alignment="CENTER">
                               <children>
-                                  <Button mnemonicParsing="false" onAction="#addEnvelopeConfig" text="→">
+                                  <Button accessibleText="Add envelope preset" mnemonicParsing="false" onAction="#addEnvelopeConfig" text="→">
                                  <font>
                                     <Font size="14.0" />
                                  </font>
@@ -230,3 +230,4 @@
       </TabPane>
    </center>
 </BorderPane>
+

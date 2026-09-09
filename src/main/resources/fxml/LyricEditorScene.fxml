@@ -51,8 +51,8 @@
                             <center>
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
-                                        <Label fx:id="insertLyricsLabel" text="Insert lyrics separated by whitespace:" />
-                              <TextArea fx:id="lyricsTextArea" accessibleText="Lyrics separated by whitespace" />
+                                        <Label fx:id="insertLyricsLabel" text="Insert lyrics separated by whitespace:" labelFor="$lyricsTextArea" />
+                              <TextArea fx:id="lyricsTextArea" />
                                         <HBox alignment="CENTER_RIGHT" spacing="5.0">
                                             <children>
                                     <Text fx:id="validateResult" focusTraversable="true" strokeType="OUTSIDE" strokeWidth="0.0" />
@@ -75,8 +75,8 @@
                             <center>
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
-                                        <Label fx:id="textLabel" text="Text:" />
-                                        <TextField fx:id="prefixSuffixTextField" accessibleText="Prefix or suffix text" />
+                                        <Label fx:id="textLabel" text="Text:" labelFor="$prefixSuffixTextField" />
+                                        <TextField fx:id="prefixSuffixTextField" />
                                         <HBox alignment="CENTER_RIGHT">
                                             <children>
                                                 <Button accessibleText="Add prefix or suffix" mnemonicParsing="false" onAction="#addPrefixSuffix" text="→">
@@ -152,13 +152,15 @@
                                     <children>
                               <HBox alignment="CENTER" prefHeight="50.0" spacing="10.0">
                                  <children>
-                                    <ChoiceBox fx:id="fromChoiceBox" accessibleText="Convert reclist from" prefWidth="150.0" />
+                                    <Label text="From:" labelFor="$fromChoiceBox" />
+                                    <ChoiceBox fx:id="fromChoiceBox" prefWidth="150.0" />
                                     <Label text="→">
                                        <font>
                                           <Font size="14.0" />
                                        </font>
                                     </Label>
-                                    <ChoiceBox fx:id="toChoiceBox" accessibleText="Convert reclist to" prefWidth="150.0" />
+                                    <Label text="To:" labelFor="$toChoiceBox" />
+                                    <ChoiceBox fx:id="toChoiceBox" prefWidth="150.0" />
                                  </children>
                               </HBox>
                               <CheckBox fx:id="presampIniCheckBox" mnemonicParsing="false" text="Use presamp.ini" />
@@ -175,4 +177,5 @@
         </TabPane>
     </center>
 </BorderPane>
+
 

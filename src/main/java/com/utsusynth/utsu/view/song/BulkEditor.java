@@ -183,6 +183,7 @@ public class BulkEditor {
         Preferences portamentoPreferences =
                 Preferences.userRoot().node("utsu/bulkEditor/portamento");
         portamentoList = new ListView<>();
+        portamentoList.setAccessibleText("Portamento presets");
         portamentoList.prefHeightProperty().bind(height);
         portamentoList.setPrefWidth(220);
         portamentoList.setCellFactory(source -> {
@@ -194,7 +195,9 @@ public class BulkEditor {
                     setText(null);
                     if (empty || item == null) {
                         setGraphic(null);
+                        setAccessibleText(null);
                     } else {
+                        setAccessibleText("Portamento preset " + (getIndex() + 1));
                         HBox graphic = new HBox(5);
                         DoubleExpression width = new SimpleDoubleProperty(150);
                         DoubleProperty height = new SimpleDoubleProperty(30);
@@ -207,6 +210,8 @@ public class BulkEditor {
                         Group portamentoGroup = new Group(background, notesAndPortamento);
                         portamentoGroup.setMouseTransparent(true);
                         Button closeButton = new Button("X");
+                        closeButton.setAccessibleText(
+                                "Remove portamento preset " + (getIndex() + 1));
                         closeButton.setOnAction(event -> {
                             if (getIndex() != 0) {
                                 getListView().getItems().remove(getIndex());
@@ -231,6 +236,16 @@ public class BulkEditor {
             return listCell;
         });
         portamentoList.setItems(portamentoData);
+        // Keyboard equivalent of the mouse click handler above: without this, using arrow keys
+        // to move the ListView's own selection highlight never actually updated the editor,
+        // since that logic was only ever wired to mouse clicks.
+        portamentoList.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldIndex, newIndex) -> {
+                    int index = newIndex.intValue();
+                    if (index >= 0 && selectFromPortamentoList(index)) {
+                        portamentoPreferences.putInt("listIndex", index);
+                    }
+                });
         // Select cached index if possible.
         int cachedIndex = portamentoPreferences.getInt("listIndex", 0);
         if (selectFromPortamentoList(cachedIndex)) {
@@ -365,6 +380,7 @@ public class BulkEditor {
             ObservableList<PitchbendData> vibratoData, DoubleExpression height) {
         Preferences vibratoPreferences = Preferences.userRoot().node("/utsu/bulkEditor/vibrato");
         vibratoList = new ListView<>();
+        vibratoList.setAccessibleText("Vibrato presets");
         vibratoList.prefHeightProperty().bind(height);
         vibratoList.setPrefWidth(220);
         vibratoList.setCellFactory(source -> {
@@ -376,7 +392,9 @@ public class BulkEditor {
                     setText(null);
                     if (empty || item == null) {
                         setGraphic(null);
+                        setAccessibleText(null);
                     } else {
+                        setAccessibleText("Vibrato preset " + (getIndex() + 1));
                         HBox graphic = new HBox(5);
                         DoubleExpression width = new SimpleDoubleProperty(150);
                         DoubleProperty height = new SimpleDoubleProperty(30);
@@ -389,6 +407,8 @@ public class BulkEditor {
                         Group vibratoGroup = new Group(background, noteAndVibrato);
                         vibratoGroup.setMouseTransparent(true);
                         Button closeButton = new Button("X");
+                        closeButton.setAccessibleText(
+                                "Remove vibrato preset " + (getIndex() + 1));
                         closeButton.setOnAction(event -> {
                             if (getIndex() != 0) {
                                 getListView().getItems().remove(getIndex());
@@ -413,6 +433,14 @@ public class BulkEditor {
             return listCell;
         });
         vibratoList.setItems(vibratoData);
+        // Keyboard equivalent of the mouse click handler above.
+        vibratoList.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldIndex, newIndex) -> {
+                    int index = newIndex.intValue();
+                    if (index >= 0 && selectFromVibratoList(index)) {
+                        vibratoPreferences.putInt("listIndex", index);
+                    }
+                });
         // Select cached index if possible.
         int cachedIndex = vibratoPreferences.getInt("listIndex", 0);
         if (selectFromVibratoList(cachedIndex)) {
@@ -485,6 +513,7 @@ public class BulkEditor {
             ObservableList<EnvelopeData> envelopeData, DoubleExpression height) {
         Preferences envelopePreferences = Preferences.userRoot().node("/utsu/bulkEditor/envelope");
         envelopeList = new ListView<>();
+        envelopeList.setAccessibleText("Envelope presets");
         envelopeList.prefHeightProperty().bind(height);
         envelopeList.setPrefWidth(220);
         envelopeList.setCellFactory(source -> {
@@ -496,7 +525,9 @@ public class BulkEditor {
                     setText(null);
                     if (empty || item == null) {
                         setGraphic(null);
+                        setAccessibleText(null);
                     } else {
+                        setAccessibleText("Envelope preset " + (getIndex() + 1));
                         HBox graphic = new HBox(5);
                         DoubleExpression width = new SimpleDoubleProperty(150);
                         DoubleProperty height = new SimpleDoubleProperty(30);
@@ -507,6 +538,8 @@ public class BulkEditor {
                         Group envelopeGroup = new Group(background, envelope.redraw());
                         envelopeGroup.setMouseTransparent(true);
                         Button closeButton = new Button("X");
+                        closeButton.setAccessibleText(
+                                "Remove envelope preset " + (getIndex() + 1));
                         closeButton.setOnAction(event -> {
                             if (getIndex() != 0) {
                                 getListView().getItems().remove(getIndex());
@@ -531,6 +564,14 @@ public class BulkEditor {
             return listCell;
         });
         envelopeList.setItems(envelopeData);
+        // Keyboard equivalent of the mouse click handler above.
+        envelopeList.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldIndex, newIndex) -> {
+                    int index = newIndex.intValue();
+                    if (index >= 0 && selectFromEnvelopeList(index)) {
+                        envelopePreferences.putInt("listIndex", index);
+                    }
+                });
         // Select cached index if possible.
         int cachedIndex = envelopePreferences.getInt("listIndex", 0);
         if (selectFromEnvelopeList(cachedIndex)) {
@@ -570,3 +611,4 @@ public class BulkEditor {
         return new VBox(topCell, bottomCell);
     }
 }
+
