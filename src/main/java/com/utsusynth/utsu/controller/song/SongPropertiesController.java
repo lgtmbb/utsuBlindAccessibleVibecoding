@@ -203,6 +203,15 @@ public class SongPropertiesController implements Localizable {
         });
 
         // Setup tempo slider.
+        tempoSlider.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.UP) {
+                tempoSlider.increment();
+                event.consume();
+            } else if (event.getCode() == javafx.scene.input.KeyCode.DOWN) {
+                tempoSlider.decrement();
+                event.consume();
+            }
+        });
         tempoSlider.valueProperty().addListener((event) -> {
             int sliderValue = RoundUtils.round(tempoSlider.getValue());
             tempoSlider.setValue(sliderValue);
@@ -410,3 +419,4 @@ public class SongPropertiesController implements Localizable {
         currentStage.close();
     }
 }
+

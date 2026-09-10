@@ -20,6 +20,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -141,7 +143,29 @@ public class NotePropertiesController implements Localizable {
                 event -> flagsTF.setStyle("-fx-control-inner-background: white;"));
     }
 
+    /**
+     * Sliders in this dialog are horizontal, so their built-in keyboard handling only responds
+     * to Left/Right (adjusts the value) -- Up/Down are not consumed by a horizontal slider at
+     * all, so pressing them was falling through to the surrounding GridPane's own directional
+     * focus traversal instead, making focus jump to an unrelated control with no indication why.
+     * Adding explicit Up/Down handling here makes all four arrow keys work for adjusting the
+     * value, matching how a native Windows slider control responds to any arrow key regardless
+     * of orientation, and stops the accidental focus jump.
+     */
+    private void addUpDownArrowSupport(Slider slider) {
+        slider.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.UP) {
+                slider.increment();
+                event.consume();
+            } else if (event.getCode() == KeyCode.DOWN) {
+                slider.decrement();
+                event.consume();
+            }
+        });
+    }
+
     void initializeDoubleSlider(Slider slider, TextField textField) {
+        addUpDownArrowSupport(slider);
         slider.valueProperty().addListener(event -> {
             double sliderValue = slider.getValue();
             textField.setText(RoundUtils.roundDecimal(sliderValue, "#.#"));
@@ -161,6 +185,7 @@ public class NotePropertiesController implements Localizable {
     }
 
     void initializeIntSlider(Slider slider, TextField textField) {
+        addUpDownArrowSupport(slider);
         // Setup modulation slider.
         slider.valueProperty().addListener(event -> {
             int sliderValue = RoundUtils.round(slider.getValue());
@@ -468,4 +493,5 @@ public class NotePropertiesController implements Localizable {
                 .equals(RoundUtils.roundDecimal(value2, "#.#"));
     }
 }
+
 
