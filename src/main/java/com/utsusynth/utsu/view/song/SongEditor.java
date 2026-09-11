@@ -377,6 +377,37 @@ public class SongEditor {
         return quantizer.getQuant();
     }
 
+    /**
+     * Reliable, keyboard-triggered pitch/time/duration editing of the currently (logically)
+     * focused note -- driven by getFocusNote() (the same highlighted-notes state Tab/Enter/
+     * Backspace already use reliably), not by real JavaFX Node focus on one specific rendered
+     * Note instance. That per-Node approach is what Note.java's own key handler originally used,
+     * and it is fragile: notes are destroyed and recreated on redraw (e.g. when scrolling), and
+     * nothing re-requests focus on the new instance afterward, so real focus can silently end up
+     * somewhere else entirely -- which is what made Up/Down/Ctrl+Shift+Left/Right stop working
+     * even though Tab/Enter/Backspace (which only depend on the logical state) kept working.
+     */
+    public void movePitchOfFocusedNote(int rowDelta) {
+        Optional<Integer> focusPosition = getFocusNote();
+        if (focusPosition.isPresent() && noteMap.hasNote(focusPosition.get())) {
+            noteMap.getNote(focusPosition.get()).moveNoteByKeyboard(0, rowDelta);
+        }
+    }
+
+    public void moveTimeOfFocusedNote(int positionDelta) {
+        Optional<Integer> focusPosition = getFocusNote();
+        if (focusPosition.isPresent() && noteMap.hasNote(focusPosition.get())) {
+            noteMap.getNote(focusPosition.get()).moveNoteByKeyboard(positionDelta, 0);
+        }
+    }
+
+    public void resizeDurationOfFocusedNote(int durationDelta) {
+        Optional<Integer> focusPosition = getFocusNote();
+        if (focusPosition.isPresent() && noteMap.hasNote(focusPosition.get())) {
+            noteMap.getNote(focusPosition.get()).resizeNoteByKeyboard(durationDelta);
+        }
+    }
+
     public boolean createNoteAt(int startMs, int startRow) {
         if (noteMap.hasNote(startMs)) {
             return false; // Something is already there; do nothing rather than risk an overlap.
@@ -1157,3 +1188,4 @@ public class SongEditor {
         };
     }
 }
+

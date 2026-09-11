@@ -755,7 +755,7 @@ public class Note implements TrackItem, Comparable<Note> {
      * currently highlighted notes, matching mouse-drag behavior) and records the change on the
      * undo stack immediately, since there is no discrete "drag released" moment with a keyboard.
      */
-    private void moveNoteByKeyboard(int positionDelta, int rowDelta) {
+    public void moveNoteByKeyboard(int positionDelta, int rowDelta) {
         if (!isValid()) {
             return;
         }
@@ -780,7 +780,7 @@ public class Note implements TrackItem, Comparable<Note> {
      * Keyboard equivalent of dragging a note's right edge. Positive delta lengthens the note,
      * negative delta shortens it. Refuses to shrink a note below one quantization step.
      */
-    private void resizeNoteByKeyboard(int durationDelta) {
+    public void resizeNoteByKeyboard(int durationDelta) {
         if (!isValid()) {
             return;
         }
@@ -910,5 +910,6 @@ public class Note implements TrackItem, Comparable<Note> {
         return result;
     }
 }
+
 
 

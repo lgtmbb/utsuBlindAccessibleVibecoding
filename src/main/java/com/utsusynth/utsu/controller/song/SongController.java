@@ -579,6 +579,28 @@ public class SongController implements EditorController, Localizable {
                 songEditor.focusOnNote(positionMs);
             }
             return true;
+        } else if (new KeyCodeCombination(KeyCode.UP).match(keyEvent)) {
+            songEditor.movePitchOfFocusedNote(1);
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.DOWN).match(keyEvent)) {
+            songEditor.movePitchOfFocusedNote(-1);
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.RIGHT, SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+                .match(keyEvent)) {
+            songEditor.moveTimeOfFocusedNote(songEditor.getQuant());
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.LEFT, SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+                .match(keyEvent)) {
+            songEditor.moveTimeOfFocusedNote(-songEditor.getQuant());
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.SHIFT_DOWN)
+                .match(keyEvent)) {
+            songEditor.resizeDurationOfFocusedNote(songEditor.getQuant());
+            return true;
+        } else if (new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHIFT_DOWN)
+                .match(keyEvent)) {
+            songEditor.resizeDurationOfFocusedNote(-songEditor.getQuant());
+            return true;
         } else {
             // No need to override default key behavior.
             return false;
@@ -1574,4 +1596,5 @@ public class SongController implements EditorController, Localizable {
         }
     }
 }
+
 
