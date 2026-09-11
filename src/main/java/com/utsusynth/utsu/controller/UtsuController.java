@@ -660,13 +660,25 @@ public class UtsuController implements Localizable {
             if (songName.isPresent()) {
                 newTab.setText(songName.get());
                 addRecentFile(editor.getOpenFile());
+                AccessibleDialogs.showMessage(
+                        tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                        "File Opened",
+                        "Successfully opened \"" + songName.get() + "\".");
             } else {
                 closeTab(newTab);
+                AccessibleDialogs.showMessage(
+                        tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                        "File Not Opened",
+                        "The file was not opened.");
             }
         } catch (FileAlreadyOpenException e) {
             statusBar.setText("Error: Cannot have the same file open in two tabs.");
             switchToExistingFile(e.getAlreadyOpenFile());
             closeTab(newTab);
+            AccessibleDialogs.showMessage(
+                    tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                    "File Not Opened",
+                    "Cannot have the same file open in two tabs.");
         }
     }
 
@@ -682,13 +694,25 @@ public class UtsuController implements Localizable {
             if (voicebankName.isPresent()) {
                 newTab.setText(voicebankName.get());
                 addRecentFile(editor.getOpenFile());
+                AccessibleDialogs.showMessage(
+                        tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                        "File Opened",
+                        "Successfully opened \"" + voicebankName.get() + "\".");
             } else {
                 closeTab(newTab);
+                AccessibleDialogs.showMessage(
+                        tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                        "File Not Opened",
+                        "The file was not opened.");
             }
         } catch (FileAlreadyOpenException e) {
             statusBar.setText("Error: Cannot have the same file open in two tabs.");
             switchToExistingFile(e.getAlreadyOpenFile());
             closeTab(newTab);
+            AccessibleDialogs.showMessage(
+                    tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                    "File Not Opened",
+                    "Cannot have the same file open in two tabs.");
         }
     }
 
@@ -852,7 +876,16 @@ public class UtsuController implements Localizable {
         if (!tabs.getTabs().isEmpty()) {
             Tab curTab = tabs.getSelectionModel().getSelectedItem();
             EditorController editor = editors.get(curTab.getId());
-            editor.save().ifPresent(curTab::setText);
+            Optional<String> savedName = editor.save();
+            Window owner = tabs.getScene() != null ? tabs.getScene().getWindow() : null;
+            if (savedName.isPresent()) {
+                curTab.setText(savedName.get());
+                AccessibleDialogs.showMessage(
+                        owner, "File Saved", "Successfully saved \"" + savedName.get() + "\".");
+            } else {
+                AccessibleDialogs.showMessage(
+                        owner, "File Not Saved", "The file was not saved.");
+            }
         }
     }
 
@@ -861,8 +894,17 @@ public class UtsuController implements Localizable {
         if (!tabs.getTabs().isEmpty()) {
             Tab curTab = tabs.getSelectionModel().getSelectedItem();
             EditorController editor = editors.get(curTab.getId());
-            editor.saveAs().ifPresent(curTab::setText);
-            addRecentFile(editor.getOpenFile());
+            Optional<String> savedName = editor.saveAs();
+            Window owner = tabs.getScene() != null ? tabs.getScene().getWindow() : null;
+            if (savedName.isPresent()) {
+                curTab.setText(savedName.get());
+                addRecentFile(editor.getOpenFile());
+                AccessibleDialogs.showMessage(
+                        owner, "File Saved", "Successfully saved \"" + savedName.get() + "\".");
+            } else {
+                AccessibleDialogs.showMessage(
+                        owner, "File Not Saved", "The file was not saved.");
+            }
         }
     }
 
@@ -1156,6 +1198,7 @@ public class UtsuController implements Localizable {
         statusBar.cancelProgress();
     }
 }
+
 
 
 

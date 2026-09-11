@@ -62,6 +62,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.Pair;
 
@@ -1136,11 +1137,29 @@ public class SongController implements EditorController, Localizable {
             @Override
             protected void succeeded() {
                 super.succeeded();
+                Window owner = anchorCenter.getScene() != null
+                        ? anchorCenter.getScene().getWindow() : null;
                 if (getValue()) {
                     statusBar.setText("Exported to file: " + file.getName());
+                    com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                            owner, "WAV Exported",
+                            "Successfully exported to \"" + file.getName() + "\".");
                 } else {
                     statusBar.setText("Export produced no output.");
+                    com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                            owner, "WAV Export Failed", "Export produced no output.");
                 }
+            }
+            @Override
+            protected void failed() {
+                super.failed();
+                statusBar.setText("Export failed.");
+                com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                        anchorCenter.getScene() != null
+                                ? anchorCenter.getScene().getWindow() : null,
+                        "WAV Export Failed",
+                        "Could not export to \"" + file.getName() + "\"."
+                                + (getException() == null ? "" : " " + getException().getMessage()));
             }
         };
         new Thread(renderWavTask).start();
@@ -1596,5 +1615,6 @@ public class SongController implements EditorController, Localizable {
         }
     }
 }
+
 
 
