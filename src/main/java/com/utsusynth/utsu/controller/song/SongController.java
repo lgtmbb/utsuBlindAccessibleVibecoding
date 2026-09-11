@@ -696,9 +696,10 @@ public class SongController implements EditorController, Localizable {
     }
 
     private void showCreateNoteErrorAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message);
-        alert.setTitle("Could not create note");
-        alert.showAndWait();
+        com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                anchorCenter.getScene() != null ? anchorCenter.getScene().getWindow() : null,
+                "Could not create note",
+                message);
     }
 
     /**
@@ -1573,3 +1574,4 @@ public class SongController implements EditorController, Localizable {
         }
     }
 }
+

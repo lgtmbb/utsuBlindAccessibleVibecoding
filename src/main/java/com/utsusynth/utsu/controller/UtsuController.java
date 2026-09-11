@@ -2,6 +2,7 @@ package com.utsusynth.utsu.controller;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.utsusynth.utsu.common.AccessibleDialogs;
 import com.utsusynth.utsu.common.StatusBar;
 import com.utsusynth.utsu.common.dialog.SaveWarningDialog;
 import com.utsusynth.utsu.common.dialog.SaveWarningDialog.Decision;
@@ -31,6 +32,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 import java.io.File;
@@ -730,19 +732,18 @@ public class UtsuController implements Localizable {
                     message.append("- ").append(warning).append("\n");
                 }
             }
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, message.toString());
-            alert.setTitle("Voicebank extraction complete");
-            alert.setHeaderText("Voicebank extraction complete");
-            alert.showAndWait();
+            AccessibleDialogs.showMessage(
+                    tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                    "Voicebank extraction complete",
+                    message.toString());
         });
         task.setOnFailed(workerStateEvent -> {
             Throwable exception = task.getException();
-            Alert alert = new Alert(
-                    Alert.AlertType.ERROR,
+            AccessibleDialogs.showMessage(
+                    tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                    "Voicebank extraction failed",
                     "Could not extract the voicebank .zip file.\n"
                             + (exception == null ? "" : exception.getMessage()));
-            alert.setTitle("Voicebank extraction failed");
-            alert.showAndWait();
         });
         Thread extractionThread = new Thread(task, "voicebank-zip-extraction");
         extractionThread.setDaemon(true);
@@ -832,13 +833,14 @@ public class UtsuController implements Localizable {
         boolean shouldConfirm = Preferences.userRoot()
                 .node("utsu2").getBoolean("confirmTabCloseOnDelete", true);
         if (shouldConfirm) {
-            Alert confirm = new Alert(
-                    Alert.AlertType.CONFIRMATION,
+            Window owner = tabs.getScene() != null ? tabs.getScene().getWindow() : null;
+            boolean confirmed = AccessibleDialogs.confirm(
+                    owner,
+                    "Close Tab",
                     "Close the tab \"" + currentTab.getText() + "\"?",
-                    ButtonType.YES, ButtonType.NO);
-            confirm.setTitle("Close Tab");
-            confirm.setHeaderText("Close Tab");
-            if (confirm.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+                    "Yes",
+                    "No");
+            if (!confirmed) {
                 return;
             }
         }
@@ -1001,10 +1003,10 @@ public class UtsuController implements Localizable {
         String message = "Utsu is a UTAU-compatible vocal synthesizer editor, created by "
                 + "titinko and contributors.\n\n"
                 + "https://github.com/titinko/utsu";
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
-        alert.setTitle("About Utsu");
-        alert.setHeaderText("About Utsu");
-        alert.showAndWait();
+        AccessibleDialogs.showMessage(
+                tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                "About Utsu",
+                message);
     }
 
     @FXML
@@ -1022,10 +1024,10 @@ public class UtsuController implements Localizable {
                 + "keyboard shortcuts, and the GitHub Releases page for the full changelog of "
                 + "every build:\n"
                 + "https://github.com/lgtmbb/utsuBlindAccessibleVibecoding";
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
-        alert.setTitle("About This Build");
-        alert.setHeaderText("About This Build");
-        alert.showAndWait();
+        AccessibleDialogs.showMessage(
+                tabs.getScene() != null ? tabs.getScene().getWindow() : null,
+                "About This Build",
+                message);
     }
 
     @FXML
@@ -1154,6 +1156,7 @@ public class UtsuController implements Localizable {
         statusBar.cancelProgress();
     }
 }
+
 
 
 

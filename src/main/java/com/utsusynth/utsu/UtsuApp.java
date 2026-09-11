@@ -60,8 +60,8 @@ public class UtsuApp extends Application {
             }
         }
         if (alertText.length() > 0) {
-            Alert alert = new Alert(AlertType.ERROR, alertText.toString());
-            alert.showAndWait();
+            com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                    null, "Startup Error", alertText.toString());
             // Close program.
             primaryStage.show();
             primaryStage.close();
@@ -160,10 +160,9 @@ public class UtsuApp extends Application {
             return; // Already configured correctly; nothing to do.
         }
 
-        ButtonType fixNowButton = new ButtonType("Fix now");
-        ButtonType notNowButton = new ButtonType("Not now", ButtonBar.ButtonData.CANCEL_CLOSE);
-        Alert confirm = new Alert(
-                AlertType.CONFIRMATION,
+        boolean shouldFix = com.utsusynth.utsu.common.AccessibleDialogs.confirm(
+                null,
+                "Windows Unicode file name support",
                 "Windows is currently set to translate file names using a non-Unicode character "
                         + "set. This means voicebank folder and file names containing Japanese "
                         + "(or other non-Latin) characters may appear as unreadable garbled "
@@ -176,16 +175,11 @@ public class UtsuApp extends Application {
                         + "change (choose Yes); and a restart is needed afterward for the change "
                         + "to take effect.\n\n"
                         + "This message only appears once, on first launch.",
-                fixNowButton, notNowButton);
-        confirm.setTitle("Windows Unicode file name support");
-        confirm.setHeaderText("File names with Japanese or other non-Latin characters may not "
-                + "display correctly");
-        confirm.getButtonTypes().setAll(fixNowButton, notNowButton);
-        confirm.showAndWait().ifPresent(choice -> {
-            if (choice == fixNowButton) {
-                applyWindowsUtf8CodePageFix();
-            }
-        });
+                "Fix now",
+                "Not now");
+        if (shouldFix) {
+            applyWindowsUtf8CodePageFix();
+        }
     }
 
     /**
@@ -261,26 +255,20 @@ public class UtsuApp extends Application {
             int exitCode = elevated.waitFor();
 
             if (exitCode == 0 && isWindowsUtf8CodePageEnabled()) {
-                ButtonType restartButton = new ButtonType("Restart now");
-                ButtonType laterButton =
-                        new ButtonType("Restart later", ButtonBar.ButtonData.CANCEL_CLOSE);
-                Alert done = new Alert(
-                        AlertType.INFORMATION,
+                boolean restartNow = com.utsusynth.utsu.common.AccessibleDialogs.confirm(
+                        null,
+                        "Setting updated",
                         "The Windows setting was updated successfully. A restart is required "
                                 + "before file names display correctly.",
-                        restartButton, laterButton);
-                done.setTitle("Setting updated");
-                done.setHeaderText("Restart required");
-                done.getButtonTypes().setAll(restartButton, laterButton);
-                done.showAndWait().ifPresent(choice -> {
-                    if (choice == restartButton) {
-                        try {
-                            new ProcessBuilder("shutdown", "/r", "/t", "5").start();
-                        } catch (IOException e) {
-                            // Not fatal; the user can still restart manually.
-                        }
+                        "Restart now",
+                        "Restart later");
+                if (restartNow) {
+                    try {
+                        new ProcessBuilder("shutdown", "/r", "/t", "5").start();
+                    } catch (IOException e) {
+                        // Not fatal; the user can still restart manually.
                     }
-                });
+                }
             } else {
                 showFixFailedAlert(null);
             }
@@ -299,15 +287,14 @@ public class UtsuApp extends Application {
                 + "3. Click \"Change system locale...\".\n"
                 + "4. Check \"Beta: Use Unicode UTF-8 for worldwide language support\".\n"
                 + "5. Restart Windows.";
-        Alert alert = new Alert(AlertType.WARNING, message);
-        alert.setTitle("Windows Unicode file name support");
-        alert.setHeaderText("Automatic fix did not complete");
-        alert.showAndWait();
+        com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                null, "Windows Unicode file name support", message);
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
+
 
 

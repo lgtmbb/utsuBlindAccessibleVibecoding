@@ -449,13 +449,11 @@ public class NotePropertiesController implements Localizable {
         // properties (velocity, preutter, overlap, intensity, modulation, flags) have no
         // audible or visible effect on the note itself that a screen-reader user could notice,
         // so without this there was no way to tell the change was applied at all.
-        Alert confirmation = new Alert(
-                Alert.AlertType.INFORMATION,
+        com.utsusynth.utsu.common.AccessibleDialogs.showMessage(
+                root.getScene() != null ? root.getScene().getWindow() : null,
+                "Note Properties Applied",
                 "Applied changes to " + notes.size() + " note"
                         + (notes.size() == 1 ? "" : "s") + ".");
-        confirmation.setTitle("Note Properties Applied");
-        confirmation.setHeaderText("Note Properties Applied");
-        confirmation.showAndWait();
         Stage currentStage = (Stage) root.getScene().getWindow();
         currentStage.close();
     }
@@ -493,5 +491,6 @@ public class NotePropertiesController implements Localizable {
                 .equals(RoundUtils.roundDecimal(value2, "#.#"));
     }
 }
+
 
 
