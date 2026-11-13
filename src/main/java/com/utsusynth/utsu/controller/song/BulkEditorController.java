@@ -154,6 +154,7 @@ public class BulkEditorController implements Localizable {
     }
 
     public void initialize() {
+        com.utsusynth.utsu.common.LabelBinder.bind(root);
         editorWidth = new SimpleDoubleProperty(EDITOR_WIDTH);
         editorHeight = new SimpleDoubleProperty(EDITOR_HEIGHT);
         listHeight = new SimpleDoubleProperty(LIST_HEIGHT);

@@ -51,7 +51,7 @@
                             <center>
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
-                                        <Label fx:id="insertLyricsLabel" text="Insert lyrics separated by whitespace:" labelFor="$lyricsTextArea" />
+                                        <Label fx:id="insertLyricsLabel" text="Insert lyrics separated by whitespace:" userData="lyricsTextArea" />
                               <TextArea fx:id="lyricsTextArea" />
                                         <HBox alignment="CENTER_RIGHT" spacing="5.0">
                                             <children>
@@ -75,7 +75,7 @@
                             <center>
                                 <VBox spacing="5.0" BorderPane.alignment="CENTER">
                                     <children>
-                                        <Label fx:id="textLabel" text="Text:" labelFor="$prefixSuffixTextField" />
+                                        <Label fx:id="textLabel" text="Text:" userData="prefixSuffixTextField" />
                                         <TextField fx:id="prefixSuffixTextField" />
                                         <HBox alignment="CENTER_RIGHT">
                                             <children>
@@ -152,14 +152,14 @@
                                     <children>
                               <HBox alignment="CENTER" prefHeight="50.0" spacing="10.0">
                                  <children>
-                                    <Label text="From:" labelFor="$fromChoiceBox" />
+                                    <Label text="From:" userData="fromChoiceBox" />
                                     <ChoiceBox fx:id="fromChoiceBox" prefWidth="150.0" />
                                     <Label text="→">
                                        <font>
                                           <Font size="14.0" />
                                        </font>
                                     </Label>
-                                    <Label text="To:" labelFor="$toChoiceBox" />
+                                    <Label text="To:" userData="toChoiceBox" />
                                     <ChoiceBox fx:id="toChoiceBox" prefWidth="150.0" />
                                  </children>
                               </HBox>

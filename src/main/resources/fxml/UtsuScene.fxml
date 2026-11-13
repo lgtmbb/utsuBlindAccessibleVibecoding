@@ -94,6 +94,8 @@
             <Menu fx:id="voicebankMenu" mnemonicParsing="false" text="Voicebank">
               <items>
                 <MenuItem fx:id="extractVoicebankZipItem" mnemonicParsing="false" onAction="#extractVoicebankZip" text="Extract a Voicebank .zip File..." />
+                <MenuItem mnemonicParsing="false" onAction="#openSongVoicebank" text="Open Song&apos;s Voicebank" />
+                <MenuItem mnemonicParsing="false" onAction="#changeSongVoicebank" text="Change Song&apos;s Voicebank..." />
               </items>
             </Menu>
             <Menu fx:id="currentVersionMenu" mnemonicParsing="false" text="Current Version">

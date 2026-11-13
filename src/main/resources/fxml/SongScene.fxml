@@ -16,7 +16,7 @@
          <children>
             <HBox layoutX="118.0" spacing="20.0">
                <children>
-                  <Label fx:id="quantizationLabel" alignment="CENTER" text="Quantization">
+                  <Label fx:id="quantizationLabel" alignment="CENTER" text="Quantization" userData="quantizeChoiceBox">
                      <HBox.margin>
                         <Insets top="5.0" />
                      </HBox.margin></Label>
@@ -33,7 +33,7 @@
                   <Insets left="10.0" top="30.0" />
                </padding>
             </HBox>
-            <ImageView fx:id="voicebankImage" fitHeight="70.0" fitWidth="70.0" layoutX="25.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="voicebankImage" accessibleText="Song voicebank portrait. Use the Voicebank menu to open or change the voicebank." focusTraversable="true" fitHeight="70.0" fitWidth="70.0" layoutX="25.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" />
          </children>
          <BorderPane.margin>
             <Insets />

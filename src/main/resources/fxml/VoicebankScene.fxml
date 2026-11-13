@@ -80,12 +80,12 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label fx:id="nameLabel" text="Name" GridPane.halignment="CENTER">
+                              <Label fx:id="nameLabel" userData="nameTextField" text="Name" GridPane.halignment="CENTER">
                                  <GridPane.margin>
                                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                  </GridPane.margin>
                               </Label>
-                              <Label fx:id="authorLabel" text="Author" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                              <Label fx:id="authorLabel" userData="authorTextField" text="Author" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                                  <GridPane.margin>
                                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                  </GridPane.margin>
@@ -111,6 +111,7 @@
                           <ScrollPane fitToHeight="true" fitToWidth="true" minViewportHeight="0.0" minViewportWidth="300">
                                  <content>
                                     <TextArea fx:id="descriptionTextArea" promptText="Enter description here..." />
+                        <Label text="Description" managed="false" userData="descriptionTextArea" />
                                  </content>
                               </ScrollPane>
                         </content>
@@ -125,6 +126,7 @@
                                           <VBox alignment="CENTER" layoutX="10.0" layoutY="30.0" spacing="15.0">
                                              <children>
                                                 <TextField fx:id="prefixSuffixTextField" prefHeight="27.0" prefWidth="100.0" />
+                        <Label text="Prefix or suffix text" managed="false" userData="prefixSuffixTextField" />
                                                 <Button fx:id="applyPrefixButton" mnemonicParsing="false" onAction="#applyPrefix" text="Apply (P)" />
                                                 <Button fx:id="applySuffixButton" mnemonicParsing="false" onAction="#applySuffix" text="Apply (S)" />
                                              </children>

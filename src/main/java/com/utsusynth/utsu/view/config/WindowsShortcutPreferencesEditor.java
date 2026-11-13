@@ -29,6 +29,9 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
     private CheckBox startMenuShortcutCheckbox;
     private Label statusLabel;
     private CheckBox confirmTabCloseCheckbox;
+    private CheckBox checkUtf8AtStartupCheckbox;
+    private javafx.scene.control.Button checkUtf8NowButton;
+    private Label utf8StatusLabel;
     private static final Preferences UTSU2_PREFS = Preferences.userRoot().node("utsu2");
 
     @Override
@@ -79,6 +82,22 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         confirmTabCloseCheckbox.setSelected(
                 UTSU2_PREFS.getBoolean("confirmTabCloseOnDelete", true));
 
+        Separator separator2 = new Separator();
+        checkUtf8AtStartupCheckbox = new CheckBox(
+                "Check the Windows UTF-8 (Unicode) setting at every start");
+        checkUtf8AtStartupCheckbox.setSelected(
+                UTSU2_PREFS.getBoolean("checkUtf8AtStartup", true));
+        utf8StatusLabel = new Label(describeUtf8State());
+        utf8StatusLabel.setWrapText(true);
+        utf8StatusLabel.setMaxWidth(280);
+        utf8StatusLabel.setFocusTraversable(true);
+        checkUtf8NowButton = new javafx.scene.control.Button("Check Windows UTF-8 setting now");
+        checkUtf8NowButton.setOnAction(event -> {
+            com.utsusynth.utsu.common.WindowsUnicodeSupport.checkAndOfferFix(true);
+            utf8StatusLabel.setText(describeUtf8State());
+            utf8StatusLabel.requestFocus();
+        });
+
         GridPane viewInternal = new GridPane();
         viewInternal.setHgap(10);
         viewInternal.setVgap(10);
@@ -88,6 +107,10 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         viewInternal.add(statusLabel, 0, 3);
         viewInternal.add(separator, 0, 4);
         viewInternal.add(confirmTabCloseCheckbox, 0, 5);
+        viewInternal.add(separator2, 0, 6);
+        viewInternal.add(utf8StatusLabel, 0, 7);
+        viewInternal.add(checkUtf8AtStartupCheckbox, 0, 8);
+        viewInternal.add(checkUtf8NowButton, 0, 9);
         return viewInternal;
     }
 
@@ -102,6 +125,18 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         syncShortcut(startMenuShortcutCheckbox.isSelected(), getStartMenuShortcutFile());
         UTSU2_PREFS.putBoolean(
                 "confirmTabCloseOnDelete", confirmTabCloseCheckbox.isSelected());
+        UTSU2_PREFS.putBoolean(
+                "checkUtf8AtStartup", checkUtf8AtStartupCheckbox.isSelected());
+    }
+
+    private static String describeUtf8State() {
+        if (!com.utsusynth.utsu.common.WindowsUnicodeSupport.isWindows()) {
+            return "Windows UTF-8 setting: not applicable on this system.";
+        }
+        return com.utsusynth.utsu.common.WindowsUnicodeSupport.isUtf8CodePageEnabled()
+                ? "Windows UTF-8 setting: enabled. Japanese file names will display correctly."
+                : "Windows UTF-8 setting: NOT enabled. Japanese file names may display as "
+                        + "garbled text.";
     }
 
     @Override
@@ -110,6 +145,8 @@ public class WindowsShortcutPreferencesEditor extends PreferencesEditor {
         startMenuShortcutCheckbox.setSelected(getStartMenuShortcutFile().exists());
         confirmTabCloseCheckbox.setSelected(
                 UTSU2_PREFS.getBoolean("confirmTabCloseOnDelete", true));
+        checkUtf8AtStartupCheckbox.setSelected(
+                UTSU2_PREFS.getBoolean("checkUtf8AtStartup", true));
     }
 
     private void syncShortcut(boolean shouldExist, File shortcutFile) {

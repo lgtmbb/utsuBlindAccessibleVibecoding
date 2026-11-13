@@ -126,6 +126,7 @@ public class NotePropertiesController implements Localizable {
     }
 
     public void initialize() {
+        com.utsusynth.utsu.common.LabelBinder.bind(root);
         // Set up localization.
         localizer.localize(this);
 

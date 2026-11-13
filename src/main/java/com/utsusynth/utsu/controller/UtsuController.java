@@ -518,7 +518,9 @@ public class UtsuController implements Localizable {
             FXMLLoader loader = fxmlLoaderProvider.get();
 
             // Create tab.
-            Tab tab = new Tab("Untitled", loader.load(fxml));
+            javafx.scene.Node editorRoot = loader.load(fxml);
+            com.utsusynth.utsu.common.LabelBinder.bind(editorRoot);
+            Tab tab = new Tab("Untitled", editorRoot);
             String tabId = "tab" + new Date().getTime(); // Use current timestamp for id.
             tab.setId(tabId);
             tab.setOnSelectionChanged(event -> {
@@ -1021,6 +1023,20 @@ public class UtsuController implements Localizable {
     void openNoteProperties(ActionEvent event) {
         if (!tabs.getTabs().isEmpty()) {
             editors.get(tabs.getSelectionModel().getSelectedItem().getId()).openNoteProperties();
+        }
+    }
+
+    @FXML
+    void openSongVoicebank(ActionEvent event) {
+        if (!tabs.getTabs().isEmpty()) {
+            editors.get(tabs.getSelectionModel().getSelectedItem().getId()).openSongVoicebank();
+        }
+    }
+
+    @FXML
+    void changeSongVoicebank(ActionEvent event) {
+        if (!tabs.getTabs().isEmpty()) {
+            editors.get(tabs.getSelectionModel().getSelectedItem().getId()).changeSongVoicebank();
         }
     }
 

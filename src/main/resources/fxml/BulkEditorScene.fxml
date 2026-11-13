@@ -32,7 +32,7 @@
                 </Separator>
                 <HBox alignment="CENTER_RIGHT" prefHeight="40.0" spacing="5.0">
                     <children>
-                        <Label fx:id="noteLengthFilterLabel" text="Filter to:" labelFor="$noteLengthChoiceBox">
+                        <Label fx:id="noteLengthFilterLabel" text="Filter to:" userData="noteLengthChoiceBox">
                             <HBox.margin>
                                 <Insets />
                             </HBox.margin>
@@ -124,14 +124,14 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label fx:id="vibratoLengthLabel" text="Length"  labelFor="$vibratoLengthTF" />
-                              <Label fx:id="vibratoAmplitudeLabel" text="Amplitude" GridPane.rowIndex="1"  labelFor="$vibratoAmplitudeTF" />
-                              <Label fx:id="vibratoPhaseInLabel" text="Phase In" GridPane.rowIndex="2"  labelFor="$vibratoPhaseInTF" />
-                              <Label fx:id="vibratoPhaseOutLabel" text="Phase Out" GridPane.rowIndex="3"  labelFor="$vibratoPhaseOutTF" />
-                              <Label fx:id="vibratoFrequencyLabel" text="Frequency" GridPane.rowIndex="4"  labelFor="$vibratoFrequencyTF" />
-                              <Label fx:id="vibratoFreqSlopeLabel" text="Freq. Slope" GridPane.rowIndex="5"  labelFor="$vibratoFreqSlopeTF" />
-                              <Label fx:id="vibratoHeightLabel" text="Height" GridPane.rowIndex="6"  labelFor="$vibratoHeightTF" />
-                              <Label fx:id="vibratoPhaseLabel" text="Phase" GridPane.rowIndex="7"  labelFor="$vibratoPhaseTF" />
+                              <Label fx:id="vibratoLengthLabel" text="Length"  userData="vibratoLengthTF" />
+                              <Label fx:id="vibratoAmplitudeLabel" text="Amplitude" GridPane.rowIndex="1"  userData="vibratoAmplitudeTF" />
+                              <Label fx:id="vibratoPhaseInLabel" text="Phase In" GridPane.rowIndex="2"  userData="vibratoPhaseInTF" />
+                              <Label fx:id="vibratoPhaseOutLabel" text="Phase Out" GridPane.rowIndex="3"  userData="vibratoPhaseOutTF" />
+                              <Label fx:id="vibratoFrequencyLabel" text="Frequency" GridPane.rowIndex="4"  userData="vibratoFrequencyTF" />
+                              <Label fx:id="vibratoFreqSlopeLabel" text="Freq. Slope" GridPane.rowIndex="5"  userData="vibratoFreqSlopeTF" />
+                              <Label fx:id="vibratoHeightLabel" text="Height" GridPane.rowIndex="6"  userData="vibratoHeightTF" />
+                              <Label fx:id="vibratoPhaseLabel" text="Phase" GridPane.rowIndex="7"  userData="vibratoPhaseTF" />
                               <TextField fx:id="vibratoLengthTF" GridPane.columnIndex="1" />
                               <TextField fx:id="vibratoAmplitudeTF" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                               <TextField fx:id="vibratoPhaseInTF" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -154,8 +154,8 @@
                            <children>
                               <HBox alignment="CENTER_RIGHT" prefHeight="40.0" spacing="5.0">
                                  <children>
-                                    <Label fx:id="vibratoCheckboxLabel" text="Vibrato" labelFor="$vibratoCheckbox" />
-                                    <CheckBox fx:id="vibratoCheckbox" graphicTextGap="0.0" mnemonicParsing="false" />
+                                    <Label fx:id="vibratoCheckboxLabel" text="Vibrato" userData="vibratoCheckbox" />
+                                    <CheckBox fx:id="vibratoCheckbox" accessibleText="Vibrato" graphicTextGap="0.0" mnemonicParsing="false" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Button alignment="CENTER_RIGHT" accessibleText="Add vibrato preset" mnemonicParsing="false" onAction="#addVibratoConfig" text="→">
                                        <font>

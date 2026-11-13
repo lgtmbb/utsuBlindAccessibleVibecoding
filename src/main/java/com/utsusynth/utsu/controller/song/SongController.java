@@ -258,33 +258,7 @@ public class SongController implements EditorController, Localizable {
         MenuItem openVoicebankItem = new MenuItem("Open Voicebank");
         openVoicebankItem.setOnAction(event -> callback.openVoicebank(song.get().getVoiceDir()));
         MenuItem changeVoicebankItem = new MenuItem("Change...");
-        changeVoicebankItem.setOnAction(event -> {
-            DirectoryChooser dc = new DirectoryChooser();
-            dc.setTitle("Select voicebank");
-            File file = dc.showDialog(null);
-            if (file == null
-                    || file.getAbsolutePath().equals(song.get().getVoiceDir().getAbsolutePath())) {
-                return;
-            }
-            Task<String> loadVoicebankTask = new Task<>() {
-                @Override
-                protected String call() throws Exception {
-                    song.setSong(song.get().toBuilder().setVoiceDirectory(file).build());
-                    String newName = song.get().getVoicebank().getName(); // Loads voicebank.
-                    song.get().clearAllCacheValues();
-                    return newName;
-                }
-
-                @Override
-                protected void succeeded() {
-                    super.succeeded();
-                    onSongChange();
-                    refreshView();
-                    statusBar.setText("Changed voicebank to " + getValue() + ".");
-                }
-            };
-            new Thread(loadVoicebankTask).start();
-        });
+        changeVoicebankItem.setOnAction(event -> changeSongVoicebank());
         iconContextMenu.getItems().addAll(openVoicebankItem, changeVoicebankItem);
         iconContextMenu.setOnShowing(event -> {
             openVoicebankItem.setText(localizer.getMessage("song.openCurrentVoicebank"));
@@ -1237,6 +1211,40 @@ public class SongController implements EditorController, Localizable {
         if (!songEditor.getSelectedTrack().equals(RegionBounds.INVALID)) {
             openNotePropertiesEditor(songEditor.getSelectedTrack());
         }
+    }
+
+    @Override
+    public void openSongVoicebank() {
+        callback.openVoicebank(song.get().getVoiceDir());
+    }
+
+    @Override
+    public void changeSongVoicebank() {
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Select voicebank");
+        File file = dc.showDialog(null);
+        if (file == null
+                || file.getAbsolutePath().equals(song.get().getVoiceDir().getAbsolutePath())) {
+            return;
+        }
+        Task<String> loadVoicebankTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                song.setSong(song.get().toBuilder().setVoiceDirectory(file).build());
+                String newName = song.get().getVoicebank().getName(); // Loads voicebank.
+                song.get().clearAllCacheValues();
+                return newName;
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                onSongChange();
+                refreshView();
+                statusBar.setText("Changed voicebank to " + getValue() + ".");
+            }
+        };
+        new Thread(loadVoicebankTask).start();
     }
 
     @Override

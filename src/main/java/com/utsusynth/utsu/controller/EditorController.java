@@ -112,6 +112,12 @@ public interface EditorController {
      */
     void insertNoteAfterFocus();
 
+    /** Song only. Opens the voicebank the song currently uses (keyboard route for the icon menu). */
+    void openSongVoicebank();
+
+    /** Song only. Lets the user pick a different voicebank for the song. */
+    void changeSongVoicebank();
+
     /**
      * Song only. Opens the "Create Note at Position" dialog (Pitch/Time combo boxes).
      */

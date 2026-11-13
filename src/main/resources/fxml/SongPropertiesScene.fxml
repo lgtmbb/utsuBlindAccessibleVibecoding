@@ -42,14 +42,14 @@
         </rowConstraints>
          <children>
             <Slider fx:id="tempoSlider" blockIncrement="1.0" max="260.0" min="50.0" minorTickCount="25" snapToTicks="true" value="125.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-            <Label fx:id="projectNameLabel" text="Project Name" labelFor="$projectNameTF" GridPane.halignment="CENTER" />
-            <Label fx:id="outputFileLabel" text="Output File" labelFor="$outputFileTF" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
-            <Label fx:id="flagsLabel" text="Flags" labelFor="$flagsTF" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
-            <Label fx:id="resamplerLabel" text="Resampler" labelFor="$resamplerChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-            <Label fx:id="wavtoolLabel" text="Wavtool" labelFor="$wavtoolChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-            <Label fx:id="voicebankLabel" text="Voicebank" labelFor="$voicebankChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
-            <Label fx:id="tempoLabel" text="Tempo" labelFor="$tempoSlider" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
-            <Label fx:id="tempoValueLabel" text="Tempo value" managed="false" labelFor="$curTempo" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+            <Label fx:id="projectNameLabel" text="Project Name" userData="projectNameTF" GridPane.halignment="CENTER" />
+            <Label fx:id="outputFileLabel" text="Output File" userData="outputFileTF" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+            <Label fx:id="flagsLabel" text="Flags" userData="flagsTF" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+            <Label fx:id="resamplerLabel" text="Resampler" userData="resamplerChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+            <Label fx:id="wavtoolLabel" text="Wavtool" userData="wavtoolChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+            <Label fx:id="voicebankLabel" text="Voicebank" userData="voicebankChoiceBox" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+            <Label fx:id="tempoLabel" text="Tempo" userData="tempoSlider" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+            <Label fx:id="tempoValueLabel" text="Tempo value" managed="false" userData="curTempo" GridPane.columnIndex="2" GridPane.rowIndex="6" />
             <TextField fx:id="projectNameTF" GridPane.columnIndex="1" />
             <TextField fx:id="outputFileTF" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <TextField fx:id="flagsTF" GridPane.columnIndex="1" GridPane.rowIndex="2" />

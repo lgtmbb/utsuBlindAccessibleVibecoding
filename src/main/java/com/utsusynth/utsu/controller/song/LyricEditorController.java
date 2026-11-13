@@ -117,6 +117,7 @@ public class LyricEditorController implements Localizable {
     }
 
     public void initialize() {
+        com.utsusynth.utsu.common.LabelBinder.bind(root);
         listHeight = new SimpleDoubleProperty(LIST_HEIGHT);
 
         // Initialize prefix/suffix elements.

@@ -82,30 +82,49 @@ public class PreferencesController implements Localizable {
         tableOfContents = new TreeView<>(root);
         tableOfContents.setPrefWidth(vBoxLeft.getPrefWidth());
         tableOfContents.setShowRoot(false);
+        tableOfContents.setAccessibleText("Settings categories");
         tableOfContents.setCellFactory(preferencesEditor -> {
             TreeCell<PreferencesEditor> treeCell = new TreeCell<>() {
                 @Override
                 public void updateItem(PreferencesEditor item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty) {
+                    if (empty || getItem() == null) {
                         setText(null);
+                        setAccessibleText(null);
                         return;
                     }
-                    setText(getItem() == null ? "" : getItem().getDisplayName());
+                    setText(getItem().getDisplayName());
+                    int total = getTreeView() == null || getTreeView().getRoot() == null
+                            ? 0 : getTreeView().getRoot().getChildren().size();
+                    setAccessibleText(getItem().getDisplayName() + ", " + (getIndex() + 1)
+                            + " of " + total);
                 }
             };
-            treeCell.setOnMouseClicked(event -> {
-                if (treeCell.getItem() != null) {
-                    vBoxRight.getChildren().clear();
-                    vBoxRight.getChildren().add(treeCell.getItem().getView());
-                }
-            });
             return treeCell;
         });
         vBoxLeft.getChildren().add(tableOfContents);
         VBox.setVgrow(tableOfContents, Priority.ALWAYS);
+        // Pages used to switch only in a mouse-click handler on each cell, so the arrow keys
+        // moved the highlight but never the page. Driving it from the selection fixes that.
+        tableOfContents.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldItem, newItem) -> {
+                    if (newItem != null && newItem.getValue() != null) {
+                        vBoxRight.getChildren().setAll(newItem.getValue().getView());
+                    }
+                });
         tableOfContents.getSelectionModel().selectFirst();
-        vBoxRight.getChildren().add(tableOfContents.getTreeItem(0).getValue().getView());
+
+        // Escape closes the dialog like the Cancel button (it only worked via the button).
+        this.root.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, keyEvent -> {
+                    if (keyEvent.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                        keyEvent.consume();
+                        cancelButton.fire();
+                    }
+                });
+            }
+        });
 
         // Set up localization.
         localizer.localize(this);

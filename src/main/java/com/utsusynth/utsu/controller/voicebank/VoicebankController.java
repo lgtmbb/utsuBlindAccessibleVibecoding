@@ -486,6 +486,16 @@ public class VoicebankController implements EditorController, Localizable {
     }
 
     @Override
+    public void openSongVoicebank() {
+        // Not applicable to voicebank tabs.
+    }
+
+    @Override
+    public void changeSongVoicebank() {
+        // Not applicable to voicebank tabs.
+    }
+
+    @Override
     public void insertNoteAfterFocus() {
         // Note creation does not apply to voicebanks.
     }
