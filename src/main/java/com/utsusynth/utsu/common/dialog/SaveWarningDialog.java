@@ -88,6 +88,11 @@ public class SaveWarningDialog implements Localizable {
         });
 
         Scene dialogScene = new Scene(dialogPane);
+        // The message used to be a plain, unfocusable Label: nothing in the window held focus on
+        // the text, so a screen reader announced only the buttons. Focus it on show.
+        displayMessage.setFocusTraversable(true);
+        dialog.setOnShown(event -> javafx.application.Platform.runLater(
+                displayMessage::requestFocus));
         dialog.setScene(dialogScene);
         dialog.showAndWait();
 

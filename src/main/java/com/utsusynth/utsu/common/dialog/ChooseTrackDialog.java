@@ -66,6 +66,7 @@ public class ChooseTrackDialog implements Localizable {
             trackChoiceBox.getItems().add(i);
         }
         trackChoiceBox.setValue(1);
+        chooseTrackLabel.setLabelFor(trackChoiceBox);
         HBox chooseTrackHBox = new HBox(10);
         chooseTrackHBox.getChildren().addAll(chooseTrackLabel, trackChoiceBox);
         chooseTrackLabel.setAlignment(Pos.CENTER_LEFT);

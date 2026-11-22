@@ -82,6 +82,7 @@ public class StartupDialog implements Localizable {
         languageChoiceBox
                 .setOnAction((action) -> localizer.setLocale(languageChoiceBox.getValue()));
         languageChoiceBox.setValue(localizer.getCurrentLocale());
+        languageLabel.setLabelFor(languageChoiceBox);
 
         initializeColorSchemeChoiceBox();
 
@@ -128,6 +129,9 @@ public class StartupDialog implements Localizable {
 
     private void initializeColorSchemeChoiceBox() {
         colorSchemeChoiceBox = new ChoiceBox<>();
+        if (colorSchemeLabel != null) {
+            colorSchemeLabel.setLabelFor(colorSchemeChoiceBox);
+        }
         themeManager.populateChoiceBox(colorSchemeChoiceBox);
         colorSchemeChoiceBox.setPrefWidth(150);
         colorSchemeChoiceBox.setConverter(new StringConverter<>() {
